@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
 import { usePiggyBank } from '../hooks/usePiggyBank'
+import { useTimelock } from '../hooks/useTimelock'
 
 export function DepositForm() {
   const [amount, setAmount] = useState('')
-  const [lockDuration, setLockDuration] = useState('1') // in days
-  const { deposit, isPending, isConfirming, isSuccess, refetchBalance, refetchUnlockTime } = usePiggyBank()
+  const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank()
+  const { timeRemaining } = useTimelock(unlockTime)
 
   useEffect(() => {
     if (isSuccess) {
       setAmount('')
       refetchBalance()
-      refetchUnlockTime()
     }
-  }, [isSuccess, refetchBalance, refetchUnlockTime])
+  }, [isSuccess, refetchBalance])
 
   const handleDeposit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,6 +21,21 @@ export function DepositForm() {
       return
     }
     deposit(amount)
+  }
+
+  const formatLockInfo = () => {
+    if (!unlockTime) return 'Lock period will be determined by contract settings'
+    if (!timeRemaining) return 'Loading lock information...'
+
+    const days = timeRemaining.days
+    const hours = timeRemaining.hours
+
+    if (days > 0) {
+      return `Locked for approximately ${days} day${days !== 1 ? 's' : ''}`
+    } else if (hours > 0) {
+      return `Locked for approximately ${hours} hour${hours !== 1 ? 's' : ''}`
+    }
+    return 'This piggy bank is unlocked'
   }
 
   return (
@@ -39,29 +54,14 @@ export function DepositForm() {
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="duration">Lock Duration (Days)</label>
-        <select
-          id="duration"
-          value={lockDuration}
-          onChange={(e) => setLockDuration(e.target.value)}
-          disabled={isPending || isConfirming}
-        >
-          <option value="1">1 Day</option>
-          <option value="7">7 Days</option>
-          <option value="14">14 Days</option>
-          <option value="30">30 Days</option>
-          <option value="90">90 Days</option>
-          <option value="180">180 Days</option>
-          <option value="365">1 Year</option>
-        </select>
-      </div>
-
       <div className="info-box">
-        <p>
-          Your ETH will be locked for {lockDuration} day{lockDuration !== '1' ? 's' : ''}.
-          You won't be able to withdraw until the lock period ends.
-        </p>
+        <span className="text-lg">ℹ️</span>
+        <div>
+          <p className="font-medium mb-1">About This Piggy Bank</p>
+          <p className="text-sm">
+            {formatLockInfo()}. You won't be able to withdraw until the lock period ends.
+          </p>
+        </div>
       </div>
 
       <button
