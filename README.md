@@ -45,6 +45,31 @@ Key capabilities:
 - Frontend details (components, hooks, config, scripts) are documented in `frontend/README.md`.
 - The `PiggyBank` smart contract code is expected to live in a **separate** Solidity/Foundry repository (for example, `piggybank-contracts`) and is **not** part of this repo.
 
+### Quickstart (Frontend + Contracts)
+
+Use this if you want to run both the contracts (in your own Foundry repo) and the frontend locally:
+
+1. Contracts (in your contracts repo):
+
+   ```bash
+   forge install
+   forge build
+   forge test -vvv
+   # deploy and copy the deployed PiggyBank address
+   ```
+
+2. Frontend (in this repo):
+
+   ```bash
+   cd frontend
+   npm install
+   cp .env.example .env
+   # set VITE_REOWN_PROJECT_ID and VITE_PIGGYBANK_ADDRESS
+   npm run dev
+   ```
+
+Additional details on the expected contract interface live in [CONTRACTS.md](./CONTRACTS.md). UX copy and demo scripts are in [docs/](./docs/).
+
 Add a link here to your contracts repository once it is available, for example:
 
 ```text
@@ -194,6 +219,7 @@ From the `frontend/` directory:
 If you manage the `PiggyBank` smart contract with [Foundry](https://book.getfoundry.sh/), a typical workflow might look like:
 
 ```bash
+forge install
 forge build
 forge test -vvv
 ```
