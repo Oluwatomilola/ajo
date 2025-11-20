@@ -96,7 +96,7 @@ npm install
 
 ### 2. Configure Environment Variables
 
-Copy the example file and set the required values:\r
+Copy the example file and set the required values:
 
 ```bash
 cd frontend
@@ -107,11 +107,65 @@ Edit `.env` and provide your configuration:
 
 ```env
 VITE_REOWN_PROJECT_ID=your_reown_project_id_here
-VITE_PIGGYBANK_ADDRESS=deployed_piggybank_contract_address
+VITE_PIGGYBANK_ADDRESS=your_deployed_piggybank_contract_address_here
 ```
 
-- `VITE_REOWN_PROJECT_ID` – Project ID from REOWN Cloud.
-- `VITE_PIGGYBANK_ADDRESS` – Address of the deployed `PiggyBank` smart contract on the Base network.
+**Required Configuration:**
+
+- `VITE_REOWN_PROJECT_ID` – Project ID from [REOWN Cloud](https://cloud.reown.com/)
+- `VITE_PIGGYBANK_ADDRESS` – Address of your deployed `PiggyBank` smart contract
+
+**🌐 Setting VITE_PIGGYBANK_ADDRESS by Environment:**
+
+**For Local Development:**
+1. **Local Network (Hardhat/Foundry/Anvil):**
+   ```bash
+   # Deploy your contract to local network
+   forge create PiggyBank --rpc-url http://localhost:8545
+   # Copy the deployed address from output
+   VITE_PIGGYBANK_ADDRESS=0x1234567890123456789012345678901234567890
+   ```
+
+2. **Using Existing Testnet Contract:**
+   ```bash
+   # Use a shared testnet contract from your team
+   VITE_PIGGYBANK_ADDRESS=0xabcdefabcdefabcdefabcdefabcdefabcdefabcd
+   ```
+
+**For Base Sepolia Testnet:**
+1. Deploy your PiggyBank contract to Base Sepolia:
+   ```bash
+   # Deploy to Base Sepolia testnet
+   forge create PiggyBank --rpc-url $BASE_SEPOLIA_RPC --private-key $PRIVATE_KEY
+   ```
+2. Find your contract address:
+   - Check deployment script output
+   - Visit [Base Sepolia Explorer](https://sepolia.basescan.org/)
+   - Search by transaction hash
+3. Set the address:
+   ```bash
+   VITE_PIGGYBANK_ADDRESS=0x1234567890123456789012345678901234567890
+   ```
+
+**For Base Mainnet (Production):**
+1. Deploy your PiggyBank contract to Base mainnet
+2. Verify the contract on [BaseScan](https://basescan.org/)
+3. Set the verified mainnet address:
+   ```bash
+   VITE_PIGGYBANK_ADDRESS=0xabcdefabcdefabcdefabcdefabcdefabcdefabcd
+   ```
+
+**🔗 Finding Contract Addresses:**
+- **Base Sepolia:** [https://sepolia.basescan.org/](https://sepolia.basescan.org/)
+- **Base Mainnet:** [https://basescan.org/](https://basescan.org/)
+- **Local:** Check your deployment script terminal output
+
+**⚠️  Important Notes:**
+- Testnet and mainnet addresses are **completely different** and NOT interchangeable
+- The frontend will fail to load if this address is incorrect or missing
+- Always use the correct address for your target network
+- Contract verification on blockchain explorers is recommended for transparency
+- Share testnet addresses with your development team for consistent testing
 
 ### 3. Run the Development Server
 
