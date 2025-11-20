@@ -41,6 +41,12 @@ A modern, decentralized savings application built with **React**, **Vite**, **RE
    - Create a new project
    - Copy your Project ID
 
+   **Environment Variable Validation:**
+   - `VITE_REOWN_PROJECT_ID`: **Required** - Always causes build error if missing
+   - `VITE_PIGGYBANK_ADDRESS`: **Required in CI/Production** - Causes error in CI/production builds, warning in local development
+   - Validation runs automatically on application startup
+   - Missing required variables will block CI/CD builds to prevent runtime failures
+
 ## 🎯 Available Scripts
 
 ### Development
