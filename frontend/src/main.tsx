@@ -8,8 +8,14 @@ import { wagmiAdapter, queryClient } from './config/wagmi'
 import { validateEnvironment } from './utils/validateEnv'
 
 // Validate environment variables on startup
-if (import.meta.env.DEV) {
-  validateEnvironment()
+const validation = validateEnvironment()
+
+// Throw error in strict mode (CI/production) if validation fails
+if (!validation.isValid && validation.isStrict) {
+  throw new Error(
+    'Environment validation failed. Required environment variables are missing. ' +
+    'Check console for details.'
+  )
 }
 
 createRoot(document.getElementById('root')!).render(
