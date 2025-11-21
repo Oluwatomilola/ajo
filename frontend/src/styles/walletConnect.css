@@ -64,16 +64,77 @@
 }
 
 .copy-btn {
+  position: relative;
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 1.125rem;
-  padding: 0.25rem 0.5rem;
-  transition: transform 0.2s;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
 }
 
 .copy-btn:hover {
-  transform: scale(1.2);
+  color: var(--primary);
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+.copy-btn .tooltip {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-tooltip);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.copy-btn .tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px 4px 0;
+  border-style: solid;
+  border-color: var(--bg-tooltip) transparent transparent;
+}
+
+.copy-btn:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -4px);
+}
+
+/* Animation for checkmark */
+@keyframes checkmark {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.copy-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.copy-btn .check-icon {
+  animation: checkmark 0.3s ease-out;
+  color: var(--success);
 }
 
 .wallet-actions {
