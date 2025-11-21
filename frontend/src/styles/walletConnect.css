@@ -1,5 +1,23 @@
 /* WalletConnect Components Styles */
 
+/* Withdraw Button */
+.withdraw-actions {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.withdraw-note {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.withdraw-note:before {
+  content: "ℹ️ ";
+  margin-right: 0.25rem;
+}
+
 /* Wallet Info Card */
 .wallet-info-card {
   background: var(--bg-card);

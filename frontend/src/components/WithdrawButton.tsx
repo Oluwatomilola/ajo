@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { usePiggyBank } from '../hooks/usePiggyBank'
 import { useTimelock } from '../hooks/useTimelock'
+import { formatEther } from 'viem'
 
 export function WithdrawButton() {
   const { balance, unlockTime, withdraw, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank()
@@ -45,19 +46,27 @@ export function WithdrawButton() {
         )}
       </div>
 
-      <button
-        className="btn btn-primary"
-        onClick={handleWithdraw}
-        disabled={!isUnlocked || !balance || isPending || isConfirming}
-      >
-        {isPending
-          ? 'Waiting for approval...'
-          : isConfirming
-          ? 'Withdrawing...'
-          : isSuccess
-          ? 'Withdrawn!'
-          : 'Withdraw All'}
-      </button>
+      <div className="withdraw-actions">
+        <button
+          className="btn btn-primary"
+          onClick={handleWithdraw}
+          disabled={!isUnlocked || !balance || isPending || isConfirming}
+          title={balance ? `Withdraw ${formatEther(balance)} ETH` : 'No funds to withdraw'}
+        >
+          {isPending
+            ? 'Waiting for approval...'
+            : isConfirming
+            ? 'Withdrawing...'
+            : isSuccess
+            ? 'Withdrawn!'
+            : `Withdraw All (${balance ? formatEther(balance) : '0'} ETH)`}
+        </button>
+        {balance && balance > 0 && (
+          <p className="withdraw-note">
+            This will withdraw your entire balance of {formatEther(balance)} ETH
+          </p>
+        )}
+      </div>
 
       {isSuccess && (
         <div className="success-message">
