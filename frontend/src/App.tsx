@@ -9,6 +9,7 @@ import { useWalletHistory } from './hooks/useWalletHistory'
 import { usePiggyBank } from './hooks/usePiggyBank'
 import './App.css'
 import './styles/walletConnect.css'
+import './styles/saveForLater.css'
 
 type Page = 'home' | 'wallet' | 'admin'
 

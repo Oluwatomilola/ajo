@@ -1,0 +1,157 @@
+/* Save for Later Component Styles */
+
+.save-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  align-self: flex-end;
+  margin-bottom: 1rem;
+}
+
+.save-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.save-later-button {
+  width: 100%;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.save-later-button:hover {
+  background: var(--bg-card);
+  border-color: var(--primary);
+}
+
+.saved-states {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.saved-states.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.saved-states h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.saved-states-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.saved-state-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+.saved-state-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.saved-state-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.saved-state-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+  word-break: break-word;
+  padding-right: 0.5rem;
+}
+
+.saved-state-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.load-button,
+.delete-button {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.load-button {
+  background: var(--primary);
+  color: white;
+}
+
+.load-button:hover {
+  background: var(--primary-dark);
+}
+
+.delete-button {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.delete-button:hover {
+  background: var(--error-bg-hover);
+}
+
+.saved-state-details {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.saved-state-details > div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.saved-state-details span:first-child {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .saved-states {
+    padding: 1rem;
+  }
+  
+  .saved-states-grid {
+    grid-template-columns: 1fr;
+  }
+}
