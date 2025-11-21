@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract PiggyBank {
+/**
+ * @title PiggyBank
+ * @notice A time-locked savings contract for disciplined ETH deposits
+ * @dev Users can deposit ETH and withdraw only after a specified unlock time
+ */
     address public owner;
     uint256 public unlockTime;
 
