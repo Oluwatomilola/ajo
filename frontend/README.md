@@ -47,6 +47,27 @@ A modern, decentralized savings application built with **React**, **Vite**, **RE
    - Validation runs automatically on application startup
    - Missing required variables will block CI/CD builds to prevent runtime failures
 
+## 🚀 Quick Local Development
+
+For comprehensive local development setup with contracts, see the complete guide in [CONTRACTS.md#local-development-setup](../CONTRACTS.md#-local-development-setup).
+
+**Quick Environment Switching:**
+\`\`\`bash
+# Switch to local development (uses Anvil default contract)
+./scripts/switch-env.sh local
+
+# Switch to testnet (you'll need to deploy your own contract)
+./scripts/switch-env.sh sepolia
+
+# Switch to mainnet (production)
+./scripts/switch-env.sh mainnet
+\`\`\`
+
+**Windows users:**
+\`\`\`powershell
+.\scripts\switch-env.ps1 -Environment local
+\`\`\`
+
 ## 🎯 Available Scripts
 
 ### Development
@@ -89,6 +110,33 @@ npm run test:coverage
 \`\`\`
 Generate test coverage report
 
+### Environment Management
+
+\`\`\`bash
+# Switch to local development environment (Anvil/Hardhat)
+./scripts/switch-env.sh local
+
+# Switch to Base Sepolia testnet
+./scripts/switch-env.sh sepolia
+
+# Switch to Base mainnet
+./scripts/switch-env.sh mainnet
+\`\`\`
+
+**Windows PowerShell Users:**
+\`\`\`powershell
+# Switch to local development environment (Anvil/Hardhat)
+.\scripts\switch-env.ps1 -Environment local
+
+# Switch to Base Sepolia testnet
+.\scripts\switch-env.ps1 -Environment sepolia
+
+# Switch to Base mainnet
+.\scripts\switch-env.ps1 -Environment mainnet
+\`\`\`
+
+These scripts automatically update your \`.env\` file with the appropriate contract address for each environment.
+
 ## 🏗️ Project Structure
 
 \`\`\`
@@ -116,6 +164,9 @@ frontend/
 │   ├── main.tsx             # Entry point
 │   ├── App.css              # Component styles
 │   └── index.css            # Global styles
+├── scripts/                 # Helper scripts
+│   ├── switch-env.sh        # Environment switching (Unix/Linux/macOS)
+│   └── switch-env.ps1       # Environment switching (Windows PowerShell)
 ├── package.json
 ├── vite.config.ts
 ├── tsconfig.json

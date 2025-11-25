@@ -31,3 +31,14 @@ Thanks for your interest in contributing! This project currently contains the fr
 
 ## Security
 - Do not include secrets in issues or PRs. Configure env vars locally or in deployment settings.
+
+## Local Development Setup
+
+For contributors working on both frontend and contracts, we've created comprehensive setup guides:
+
+- **📖 Complete Setup Guide**: [CONTRACTS.md#Local Development Setup](./CONTRACTS.md#-local-development-setup)
+- **🏠 Quick Start**: Use the environment switching scripts:
+  - `./scripts/switch-env.sh local` (Unix/Linux/macOS)
+  - `.\scripts\switch-env.ps1 -Environment local` (Windows PowerShell)
+
+These scripts handle the contract address configuration automatically for local development, testnet, and mainnet environments.

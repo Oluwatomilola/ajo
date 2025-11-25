@@ -68,6 +68,14 @@ Use this if you want to run both the contracts (in your own Foundry repo) and th
    npm run dev
    ```
 
+**🔧 For Complete Local Development Setup:**  
+See the comprehensive [Local Development Setup Guide in CONTRACTS.md](./CONTRACTS.md#-local-development-setup) for detailed step-by-step instructions on:
+- Setting up local blockchain with Anvil
+- Deploying contracts locally
+- Configuring frontend for local testing
+- Environment switching between local/testnet/mainnet
+- Troubleshooting common issues
+
 Additional details on the expected contract interface live in [CONTRACTS.md](./CONTRACTS.md). UX copy and demo scripts are in [docs/](./docs/).
 
 Add a link here to your contracts repository once it is available, for example:
