@@ -26,8 +26,26 @@ Thanks for your interest in contributing! This project currently contains the fr
 - Keep UI copy consistent with `docs/ux-copy.md`.
 
 ## Opening issues
-- Describe the problem, expected vs actual behavior, and steps to reproduce.
-- Include environment details (browser, network, wallet).
+
+For bug reports and feature requests, please include the following information to help us address your issue effectively:
+
+### For Bug Reports
+- [ ] Clear description of the issue
+- [ ] Steps to reproduce the issue
+- [ ] Expected vs actual behavior
+- [ ] File paths and line numbers where the issue occurs (if applicable)
+- [ ] Screenshots or screen recordings (if visual issue)
+- [ ] Environment details:
+  - Browser and version
+  - Operating system and version
+  - Wallet (if applicable)
+  - Network (e.g., mainnet, testnet, local)
+
+### For Feature Requests
+- [ ] Clear description of the feature
+- [ ] Use case and expected benefits
+- [ ] Any relevant file paths or components that would be affected
+- [ ] Any alternative solutions or workarounds considered
 
 ## Security
 - Do not include secrets in issues or PRs. Configure env vars locally or in deployment settings.
