@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
-import { usePiggyBank } from '../hooks/usePiggyBank'
-import { useTimelock } from '../hooks/useTimelock'
+import { useState, useEffect } from 'react';
+import { usePiggyBank } from '../hooks/usePiggyBank';
+import { useTimelock } from '../hooks/useTimelock';
+import { BUTTONS, LABELS, MESSAGES, VALIDATION } from '../constants/uxCopy';
+import { formatLockTime } from '../constants/uxCopy';
 
 export function DepositForm() {
   const [amount, setAmount] = useState('')
@@ -15,39 +17,39 @@ export function DepositForm() {
   }, [isSuccess, refetchBalance])
 
   const handleDeposit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) {
-      alert('Please enter a valid amount')
-      return
+      alert(VALIDATION.INVALID_AMOUNT);
+      return;
     }
-    deposit(amount)
-  }
+    deposit(amount);
+  };
 
   const formatLockInfo = () => {
-    if (!unlockTime) return 'Lock period will be determined by contract settings'
-    if (!timeRemaining) return 'Loading lock information...'
+    if (!unlockTime) return MESSAGES.LOCKED;
+    if (!timeRemaining) return 'Loading lock information...';
 
-    const days = timeRemaining.days
-    const hours = timeRemaining.hours
+    const days = timeRemaining.days;
+    const hours = timeRemaining.hours;
 
     if (days > 0) {
-      return `Locked for approximately ${days} day${days !== 1 ? 's' : ''}`
+      return formatLockTime(days, 'days');
     } else if (hours > 0) {
-      return `Locked for approximately ${hours} hour${hours !== 1 ? 's' : ''}`
+      return formatLockTime(hours, 'hours');
     }
-    return 'This piggy bank is unlocked'
-  }
+    return MESSAGES.UNLOCKED;
+  };
 
   return (
     <form className="deposit-form" onSubmit={handleDeposit}>
       <div className="form-group">
-        <label htmlFor="amount">Amount (ETH)</label>
+        <label htmlFor="amount">{LABELS.AMOUNT_ETH}</label>
         <input
           id="amount"
           type="number"
           step="0.001"
           min="0"
-          placeholder="0.00"
+          placeholder={LABELS.AMOUNT_PLACEHOLDER}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           disabled={isPending || isConfirming}
@@ -58,8 +60,10 @@ export function DepositForm() {
         <span className="text-lg">ℹ️</span>
         <div>
           <p className="font-medium mb-1">About This Piggy Bank</p>
-          <p className="text-sm">
-            {formatLockInfo()}. You won't be able to withdraw until the lock period ends.
+          <p className="helper-text">
+            {formatLockInfo()}
+            <br />
+            <small>{MESSAGES.DEPOSIT_HELPER}</small>
           </p>
         </div>
       </div>
@@ -72,15 +76,15 @@ export function DepositForm() {
         {isPending
           ? 'Waiting for approval...'
           : isConfirming
-          ? 'Depositing...'
+          ? 'Processing...'
           : isSuccess
           ? 'Deposited!'
-          : 'Deposit ETH'}
+          : BUTTONS.DEPOSIT_ETH}
       </button>
 
       {isSuccess && (
         <div className="success-message">
-          ✅ Deposit successful! Your ETH is now locked.
+          ✅ {MESSAGES.DEPOSIT_SUCCESS}
         </div>
       )}
     </form>
