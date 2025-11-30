@@ -474,6 +474,87 @@ describe('validateEnvironment', () => {
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('VITE_PIGGYBANK_ADDRESS must be 42 characters (including "0x")')
     })
+
+    it('should handle project ID with special characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'abc123-xyz_789.GHI+jkl='
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation as it's long enough (> 32 chars)
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle contract address with mixed case hex characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xAbCdEf1234567890123456789012345678901234'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation - mixed case is allowed
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle project ID with exactly 33 characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(33)
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation (> 32 chars)
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle contract address with all uppercase hex after 0x', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xABCDEF1234567890123456789012345678901234'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation - uppercase hex is valid
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle contract address with all lowercase hex after 0x', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xabcdef1234567890123456789012345678901234'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation - lowercase hex is valid
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle very short project ID (1 character)', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'x'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should show warning for being too short
+      expect(result.isValid).toBe(true)
+      expect(result.warnings).toContain('VITE_REOWN_PROJECT_ID seems too short. Verify it is correct.')
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle very long project ID (100 characters)', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(100)
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
   })
 
   describe('Environment Variable Combinations', () => {
@@ -501,6 +582,26 @@ describe('validateEnvironment', () => {
       expect(result.isValid).toBe(false)
       expect(result.errors.length).toBeGreaterThanOrEqual(2) // Both should be errors in CI
       expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle CI=true with different values', () => {
+      const ciValues = ['true', '1', 'True', 'TRUE']
+      
+      ciValues.forEach(ciValue => {
+        process.env.CI = ciValue
+        mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
+        mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+        mockImportMeta.env.PROD = false
+        mockImportMeta.env.DEV = false
+        mockImportMeta.env.MODE = 'test'
+        
+        const result = validateEnvironment()
+        
+        expect(result.isStrict).toBe(true)
+        expect(result.errors.length).toBeGreaterThanOrEqual(2)
+        
+        delete process.env.CI
+      })
     })
 
     it('should handle valid project ID with invalid contract address', () => {
