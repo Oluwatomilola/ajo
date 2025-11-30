@@ -393,6 +393,25 @@ describe('validateEnvironment', () => {
       expect(result.errors.some(error => error.includes('VITE_PIGGYBANK_ADDRESS'))).toBe(true)
     })
 
+    it('should handle undefined project ID explicitly', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = undefined as any
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('VITE_REOWN_PROJECT_ID is not set. Get one from https://cloud.reown.com/ This is required for wallet connection functionality.')
+    })
+
+    it('should handle undefined contract address explicitly', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = undefined as any
+      
+      const result = validateEnvironment()
+      expect(result.isValid).toBe(true) // In development, missing is a warning
+      expect(result.warnings).toHaveLength(1)
+      expect(result.warnings[0]).toContain('VITE_PIGGYBANK_ADDRESS is not set')
+    })
+
     it('should handle project ID with exactly 32 characters', () => {
       mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(32)
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
@@ -455,6 +474,87 @@ describe('validateEnvironment', () => {
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('VITE_PIGGYBANK_ADDRESS must be 42 characters (including "0x")')
     })
+
+    it('should handle project ID with special characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'abc123-xyz_789.GHI+jkl='
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation as it's long enough (> 32 chars)
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle contract address with mixed case hex characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xAbCdEf1234567890123456789012345678901234'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation - mixed case is allowed
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle project ID with exactly 33 characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(33)
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation (> 32 chars)
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle contract address with all uppercase hex after 0x', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xABCDEF1234567890123456789012345678901234'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation - uppercase hex is valid
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle contract address with all lowercase hex after 0x', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xabcdef1234567890123456789012345678901234'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation - lowercase hex is valid
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle very short project ID (1 character)', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'x'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should show warning for being too short
+      expect(result.isValid).toBe(true)
+      expect(result.warnings).toContain('VITE_REOWN_PROJECT_ID seems too short. Verify it is correct.')
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle very long project ID (100 characters)', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(100)
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      // Should pass validation
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
   })
 
   describe('Environment Variable Combinations', () => {
@@ -484,6 +584,26 @@ describe('validateEnvironment', () => {
       expect(result.warnings).toHaveLength(0)
     })
 
+    it('should handle CI=true with different values', () => {
+      const ciValues = ['true', '1', 'True', 'TRUE']
+      
+      ciValues.forEach(ciValue => {
+        process.env.CI = ciValue
+        mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
+        mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+        mockImportMeta.env.PROD = false
+        mockImportMeta.env.DEV = false
+        mockImportMeta.env.MODE = 'test'
+        
+        const result = validateEnvironment()
+        
+        expect(result.isStrict).toBe(true)
+        expect(result.errors.length).toBeGreaterThanOrEqual(2)
+        
+        delete process.env.CI
+      })
+    })
+
     it('should handle valid project ID with invalid contract address', () => {
       mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = 'invalid-address'
@@ -503,6 +623,103 @@ describe('validateEnvironment', () => {
       expect(result.isValid).toBe(true) // Just a warning
       expect(result.warnings).toContain('VITE_REOWN_PROJECT_ID seems too short. Verify it is correct.')
       expect(result.errors).toHaveLength(0)
+    })
+
+    it('should validate exact error message for missing project ID', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      expect(result.errors).toContain('VITE_REOWN_PROJECT_ID is not set. Get one from https://cloud.reown.com/ This is required for wallet connection functionality.')
+      expect(result.errors.length).toBe(1)
+    })
+
+    it('should validate exact error message for missing contract address in CI', () => {
+      process.env.CI = 'true'
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+      mockImportMeta.env.PROD = false
+      mockImportMeta.env.DEV = false
+      mockImportMeta.env.MODE = 'test'
+      
+      const result = validateEnvironment()
+      
+      expect(result.errors).toContain('VITE_PIGGYBANK_ADDRESS is not set. The application cannot interact with the smart contract without this address. Deploy your contract and set this variable in your .env file.')
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should validate exact warning message for missing contract address in development', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+      
+      const result = validateEnvironment()
+      
+      expect(result.warnings).toContain('VITE_PIGGYBANK_ADDRESS is not set. The application cannot interact with the smart contract without this address. Deploy your contract and set this variable in your .env file. (This will be an error in CI/production builds)')
+    })
+
+    it('should handle contract address with exactly 41 characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x' + 'a'.repeat(39) // 41 total characters
+      
+      const result = validateEnvironment()
+      
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('VITE_PIGGYBANK_ADDRESS must be 42 characters (including "0x")')
+    })
+
+    it('should handle contract address with exactly 43 characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x' + 'a'.repeat(41) // 43 total characters
+      
+      const result = validateEnvironment()
+      
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('VITE_PIGGYBANK_ADDRESS must be 42 characters (including "0x")')
+    })
+
+    it('should handle numeric project ID', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should test strict validation logic with non-dev, non-production environment', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+      mockImportMeta.env.PROD = false
+      mockImportMeta.env.DEV = false
+      mockImportMeta.env.MODE = 'staging'
+      
+      const result = validateEnvironment()
+      
+      // Should be strict validation when not development
+      expect(result.isStrict).toBe(true)
+      expect(result.errors.length).toBeGreaterThanOrEqual(2)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle environment where only CI variable is set', () => {
+      process.env.GITHUB_ACTIONS = 'true'
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+      mockImportMeta.env.PROD = false
+      mockImportMeta.env.DEV = true
+      mockImportMeta.env.MODE = 'development'
+      
+      const result = validateEnvironment()
+      
+      // GitHub Actions should override development mode and enable strict validation
+      expect(result.isStrict).toBe(true)
+      expect(result.errors).toContain('VITE_PIGGYBANK_ADDRESS is not set')
+      expect(result.warnings).toHaveLength(0)
+      
+      delete process.env.GITHUB_ACTIONS
     })
   })
 })
