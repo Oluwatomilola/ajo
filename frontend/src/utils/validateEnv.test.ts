@@ -393,6 +393,25 @@ describe('validateEnvironment', () => {
       expect(result.errors.some(error => error.includes('VITE_PIGGYBANK_ADDRESS'))).toBe(true)
     })
 
+    it('should handle undefined project ID explicitly', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = undefined as any
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+      
+      const result = validateEnvironment()
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('VITE_REOWN_PROJECT_ID is not set. Get one from https://cloud.reown.com/ This is required for wallet connection functionality.')
+    })
+
+    it('should handle undefined contract address explicitly', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = undefined as any
+      
+      const result = validateEnvironment()
+      expect(result.isValid).toBe(true) // In development, missing is a warning
+      expect(result.warnings).toHaveLength(1)
+      expect(result.warnings[0]).toContain('VITE_PIGGYBANK_ADDRESS is not set')
+    })
+
     it('should handle project ID with exactly 32 characters', () => {
       mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(32)
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
