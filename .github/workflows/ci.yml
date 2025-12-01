@@ -49,20 +49,46 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Fetch full history for better dependency caching
+          fetch-depth: 0
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
 
+      - name: Cache Foundry dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.foundry//cache
+            ~/.foundry/toolchains
+          key: foundry-${{ runner.os }}-${{ hashFiles('**/foundry.toml', '**/lock') }}
+          restore-keys: |
+            foundry-${{ runner.os }}-
+            foundry-
+
       - name: Install deps (forge install)
-        run: forge install
+        run: |
+          # Install git submodules if they exist
+          if [ -f .gitmodules ]; then
+            git submodule sync --recursive
+            git submodule update --init --recursive
+          fi
+          forge install
 
       - name: Build (forge build)
         run: forge build
 
       - name: Test (forge test)
-        run: forge test -vvv
+        run: |
+          # Only run tests if test files exist
+          if [ -d "test" ] && [ "$(find test -name "*.sol" | wc -l)" -gt 0 ]; then
+            forge test -vvv
+          else
+            echo "No test files found, skipping forge test"
+          fi
 
   deploy:
     name: Optional Deploy (manual)
