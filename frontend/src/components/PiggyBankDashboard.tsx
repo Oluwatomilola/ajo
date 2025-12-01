@@ -3,6 +3,7 @@ import { BalanceCard } from './BalanceCard'
 import { DepositForm } from './DepositForm'
 import { WithdrawButton } from './WithdrawButton'
 import { SaveForLater } from './SaveForLater'
+import { validateEthAmount, validateName } from '../utils/validation'
 
 interface SavedState {
   id: string;
@@ -22,14 +23,24 @@ export function PiggyBankDashboard() {
   const [currentAmount, setCurrentAmount] = useState('')
 
   const handleSaveState = (name: string, amount: string, unlockTime: number) => {
-    // Input validation and sanitization
-    const sanitizedName = name.trim().substring(0, 100); // Limit length
-    const validatedAmount = amount && !isNaN(parseFloat(amount)) ? amount : '0';
+    // Use centralized validation utilities
+    const nameValidation = validateName(name);
+    const amountValidation = validateEthAmount(amount);
+    
+    if (!nameValidation.isValid) {
+      alert(`Invalid name: ${nameValidation.error}`);
+      return;
+    }
+    
+    if (!amountValidation.isValid) {
+      alert(`Invalid amount: ${amountValidation.error}`);
+      return;
+    }
     
     const newState: SavedState = {
       id: Date.now().toString(),
-      name: sanitizedName,
-      amount: validatedAmount,
+      name: nameValidation.value,
+      amount: amountValidation.value,
       unlockTime,
       date: new Date().toISOString()
     }
