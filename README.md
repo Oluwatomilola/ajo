@@ -512,6 +512,115 @@ forge test -vvv
 ```
 
 Adapt these commands to match your actual contracts repository structure.
+---
+
+## 🔧 Development Diagnostics
+
+The application includes a comprehensive developer-only diagnostics system for troubleshooting blockchain connectivity, contract interactions, and environment configuration issues.
+
+### 🛠️ Accessing Diagnostics
+
+**Development Mode Only:** The diagnostics feature is only available when `NODE_ENV=development`.
+
+1. **Start the development server:**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+2. **Navigate to the Debug page:**
+   - Look for the "🔧 Debug" button in the navigation menu
+   - Only visible in development mode
+   - Click to access the comprehensive diagnostics dashboard
+
+### 📊 Diagnostics Features
+
+#### 🌐 Blockchain Connection Status
+- **RPC Connectivity**: Test if the RPC endpoint is reachable
+- **Network Details**: Chain ID, network name, and type (mainnet/testnet)
+- **Block Information**: Latest block number and timestamp
+- **Connection Status**: Real-time connection health with error details
+
+#### 📜 Contract Status
+- **Contract Validation**: Verify contract address format and validity
+- **Deployment Status**: Check if contract is deployed at specified address
+- **ABI Validation**: Confirm ABI structure and available functions
+- **Function Analysis**: List all available contract functions with state mutability
+- **Event Analysis**: Display contract events and their parameters
+- **Network Matching**: Ensure contract network matches frontend configuration
+
+#### 💳 Recent Transactions
+- **Transaction History**: Display recent wallet transactions
+- **Status Tracking**: Show pending, success, or error states
+- **Hash & Details**: Copy transaction hashes and view block numbers
+- **Error Reporting**: Display transaction errors when available
+
+#### ⚙️ Environment Information
+- **Environment Flags**: Node environment (development/production)
+- **Configuration Status**: Verify required environment variables
+- **Build Information**: App version and build timestamp
+- **Feature Flags**: Check enabled diagnostics and debug features
+- **Wallet Connection**: Current wallet address, connector, and network details
+
+### 🚀 Using Diagnostics
+
+#### Basic Troubleshooting
+1. **Start with the header overview** - Check overall connection status
+2. **Expand sections** as needed by clicking section headers
+3. **Use refresh button** to reload diagnostic data
+4. **Copy values** by clicking on copyable fields (RPC URLs, addresses, hashes)
+
+#### Common Issues & Solutions
+
+**🔴 Blockchain Connection Issues:**
+- **"Disconnected" status**: Check network configuration and RPC endpoint
+- **RPC errors**: Verify network connectivity and RPC URL validity
+- **Network mismatch**: Ensure frontend chain ID matches expected network
+
+**🔴 Contract Issues:**
+- **"Invalid Address"**: Check `VITE_PIGGYBANK_ADDRESS` environment variable
+- **"Not Deployed"**: Verify contract is deployed on the correct network
+- **"ABI Error"**: Ensure contract ABI matches deployed contract version
+- **"Network Mismatch"**: Check that contract is deployed on the expected network
+
+**🔴 Transaction Issues:**
+- **"Pending" status**: Wait for transaction confirmation
+- **"Error" status**: Check transaction details for specific error messages
+- **No transactions**: Normal for new deployments or cleared data
+
+**🔴 Environment Issues:**
+- **"Missing" REOWN Project**: Set `VITE_REOWN_PROJECT_ID` in `.env`
+- **"Not Configured" Contract**: Set `VITE_PIGGYBANK_ADDRESS` in `.env`
+- **Production Mode**: Debug page only available in development
+
+### 🧪 Running Diagnostics Tests
+
+The diagnostics feature includes comprehensive unit tests:
+
+```bash
+cd frontend
+
+# Run all tests
+npm run test
+
+# Run diagnostics-specific tests
+npm run test diagnostics.test.ts
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### 🔒 Security Notes
+
+- **Development Only**: Diagnostics page is automatically hidden in production
+- **No Sensitive Data**: Diagnostics don't expose private keys or sensitive information
+- **Local Storage**: Transaction data stored only in browser localStorage
+- **Read-Only**: Diagnostics provides read-only access to blockchain data
+
+---
 
 ---
 
