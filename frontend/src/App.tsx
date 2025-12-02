@@ -5,15 +5,17 @@ import { PiggyBankDashboard } from './components/PiggyBankDashboard'
 import { WalletConnectPage } from './components/WalletConnectPage'
 import { AdminDashboard } from './components/AdminDashboard'
 import { TransactionToast } from './components/TransactionToast'
+import { MobileNavigation } from './components/MobileNavigation'
 import { NotificationProvider, NotificationContainer } from './components/SecureNotification'
 import { useWalletHistory } from './hooks/useWalletHistory'
 import { usePiggyBank } from './hooks/usePiggyBank'
+import { useMobile, useTouchDevice } from './hooks/useMobile'
 import { DebugPage } from './components/DebugPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import './App.css'
 import './styles/walletConnect.css'
 import './styles/saveForLater.css'
-import './styles/errorBoundary.css'
+import './styles/mobile.css'
 
 type Page = 'home' | 'wallet' | 'admin' | 'debug'
 
@@ -22,6 +24,10 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home')
   const [isAdmin, setIsAdmin] = useState(false)
   const { owner } = usePiggyBank()
+  
+  // Mobile hooks
+  const isMobile = useMobile()
+  const isTouchDevice = useTouchDevice()
 
   // Track wallet connection history
   useWalletHistory()
@@ -40,39 +46,52 @@ function App() {
       <div className="app">
         <NotificationContainer />
         <TransactionToast />
-        <Header />
+        
+        <div className="header-wrapper">
+          <Header />
+          {/* Mobile Navigation */}
+          {isMobile && (
+            <MobileNavigation
+              currentPage={currentPage}
+              onPageChange={(page) => setCurrentPage(page as Page)}
+              isAdmin={isAdmin}
+            />
+          )}
+        </div>
 
-      {/* Navigation */}
-      <nav className="app-nav">
-        <button
-          className={`nav-btn ${currentPage === 'home' ? 'active' : ''}`}
-          onClick={() => setCurrentPage('home')}
-        >
-          🏠 Home
-        </button>
-        <button
-          className={`nav-btn ${currentPage === 'wallet' ? 'active' : ''}`}
-          onClick={() => setCurrentPage('wallet')}
-        >
-          🔗 Wallet Connect
-        </button>
-        {isAdmin && (
-          <button
-            className={`nav-btn ${currentPage === 'admin' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('admin')}
-          >
-            👑 Admin
-          </button>
+        {/* Desktop Navigation */}
+        {!isMobile && (
+          <nav className="app-nav">
+            <button
+              className={`nav-btn ${currentPage === 'home' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('home')}
+            >
+              🏠 Home
+            </button>
+            <button
+              className={`nav-btn ${currentPage === 'wallet' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('wallet')}
+            >
+              🔗 Wallet Connect
+            </button>
+            {isAdmin && (
+              <button
+                className={`nav-btn ${currentPage === 'admin' ? 'active' : ''}`}
+                onClick={() => setCurrentPage('admin')}
+              >
+                👑 Admin
+              </button>
+            )}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                className={`nav-btn ${currentPage === 'debug' ? 'active' : ''}`}
+                onClick={() => setCurrentPage('debug')}
+              >
+                🔧 Debug
+              </button>
+            )}
+          </nav>
         )}
-        {process.env.NODE_ENV === 'development' && (
-          <button
-            className={`nav-btn ${currentPage === 'debug' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('debug')}
-          >
-            🔧 Debug
-          </button>
-        )}
-      </nav>
 
       <main className="main-content">
         <ErrorBoundary>

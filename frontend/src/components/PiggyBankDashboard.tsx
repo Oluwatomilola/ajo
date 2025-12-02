@@ -4,6 +4,7 @@ import { DepositForm } from './DepositForm'
 import { WithdrawButton } from './WithdrawButton'
 import { SaveForLater } from './SaveForLater'
 import { SecurePrompt, useSecurePrompt } from './SecurePrompt'
+import { useMobile } from '../hooks/useMobile'
 
 interface SavedState {
   id: string;
@@ -16,6 +17,7 @@ interface SavedState {
 // Secure Save for Later button component
 function SaveForLaterButton({ onSave }: { onSave: (name: string, amount: string, unlockTime: number) => void }) {
   const { showPrompt, PromptComponent } = useSecurePrompt()
+  const isMobile = useMobile()
 
   const handleSaveClick = async () => {
     try {
@@ -39,7 +41,7 @@ function SaveForLaterButton({ onSave }: { onSave: (name: string, amount: string,
   return (
     <>
       <button 
-        className="save-later-button"
+        className={`save-later-button ${isMobile ? 'mobile-btn mobile-btn-primary' : ''}`}
         onClick={handleSaveClick}
       >
         💾 Save for Later

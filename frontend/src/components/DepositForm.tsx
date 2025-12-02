@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePiggyBank } from '../hooks/usePiggyBank';
 import { useTimelock } from '../hooks/useTimelock';
+import { useMobile } from '../hooks/useMobile';
 import { BUTTONS, LABELS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 import { formatLockTime } from '../constants/uxCopy';
 import { useSecureAlert } from './SecureNotification';
@@ -14,6 +15,7 @@ export function DepositForm({ onAmountChange }: DepositFormProps) {
   const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank()
   const { timeRemaining } = useTimelock(unlockTime)
   const { error: showError } = useSecureAlert()
+  const isMobile = useMobile()
 
   // Notify parent component of amount changes
   useEffect(() => {
@@ -84,7 +86,7 @@ export function DepositForm({ onAmountChange }: DepositFormProps) {
 
       <button
         type="submit"
-        className="btn btn-primary"
+        className={`btn btn-primary ${isMobile ? 'mobile-btn mobile-btn-primary' : ''}`}
         disabled={!amount || isPending || isConfirming}
       >
         {isPending
