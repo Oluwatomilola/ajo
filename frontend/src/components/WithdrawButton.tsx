@@ -62,11 +62,7 @@ export function WithdrawButton() {
         )}
       </div>
 
-      {isSuccess && (
-        <div className="success-message">
-          ✅ Withdrawal successful! Check your wallet.
-        </div>
-      )}
+
     </div>
   )
 }

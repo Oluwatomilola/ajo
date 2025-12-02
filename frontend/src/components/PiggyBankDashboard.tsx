@@ -65,6 +65,7 @@ export function PiggyBankDashboard() {
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit')
   const [savedStates, setSavedStates] = useState<SavedState[]>([])
   const [showSavedStates, setShowSavedStates] = useState(false)
+  const [currentAmount, setCurrentAmount] = useState('')
 
   // Load saved states on component mount
   useEffect(() => {
@@ -131,7 +132,6 @@ export function PiggyBankDashboard() {
           savedStates={savedStates}
           onLoadState={(state) => {
             // Handle loading a saved state
-            console.log('Loading state:', state)
             setShowSavedStates(false)
           }}
           onDeleteState={async (id) => {
@@ -168,8 +168,18 @@ export function PiggyBankDashboard() {
         <div className="tab-content">
           {activeTab === 'deposit' ? (
             <>
-              <DepositForm />
-              <SaveStateButton onSave={handleSaveState} />
+              <DepositForm onAmountChange={setCurrentAmount} />
+              <button 
+                className="save-later-button"
+                onClick={() => {
+                  const name = prompt('Name this saved state (e.g., "Summer Vacation Fund"):')
+                  if (name) {
+                    handleSaveState(name, currentAmount || '0', Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60) // Default 30 days
+                  }
+                }}
+              >
+                💾 Save for Later
+              </button>
             </>
           ) : (
             <WithdrawButton />

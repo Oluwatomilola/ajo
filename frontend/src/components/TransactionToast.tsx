@@ -44,7 +44,7 @@ export function TransactionToast() {
       // Add success toast
       addToast({
         id: `${pendingTxHash}-success`,
-        message: 'Transaction confirmed successfully!',
+        message: 'Transaction confirmed',
         type: 'success',
         txHash: pendingTxHash,
       })
@@ -63,7 +63,7 @@ export function TransactionToast() {
       // Add error toast
       addToast({
         id: `${pendingTxHash}-error`,
-        message: 'Transaction failed. Please try again.',
+        message: 'Transaction failed',
         type: 'error',
         txHash: pendingTxHash,
       })

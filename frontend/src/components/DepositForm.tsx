@@ -3,11 +3,23 @@ import { usePiggyBank } from '../hooks/usePiggyBank';
 import { useTimelock } from '../hooks/useTimelock';
 import { BUTTONS, LABELS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 import { formatLockTime } from '../constants/uxCopy';
+import { validateEthAmount } from '../utils/validation';
 
-export function DepositForm() {
+interface DepositFormProps {
+  onAmountChange?: (amount: string) => void;
+}
+
+export function DepositForm({ onAmountChange }: DepositFormProps) {
   const [amount, setAmount] = useState('')
   const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank()
   const { timeRemaining } = useTimelock(unlockTime)
+
+  // Notify parent component of amount changes
+  useEffect(() => {
+    if (onAmountChange) {
+      onAmountChange(amount);
+    }
+  }, [amount, onAmountChange]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -18,11 +30,15 @@ export function DepositForm() {
 
   const handleDeposit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) {
-      alert(VALIDATION.INVALID_AMOUNT);
+    
+    // Use centralized validation
+    const validation = validateEthAmount(amount);
+    if (!validation.isValid) {
+      alert(validation.error || VALIDATION.INVALID_AMOUNT);
       return;
     }
-    deposit(amount);
+    
+    deposit(validation.value);
   };
 
   const formatLockInfo = () => {
