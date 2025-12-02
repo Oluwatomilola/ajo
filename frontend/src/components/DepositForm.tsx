@@ -5,11 +5,22 @@ import { BUTTONS, LABELS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 import { formatLockTime } from '../constants/uxCopy';
 import { useSecureAlert } from './SecureNotification';
 
-export function DepositForm() {
+interface DepositFormProps {
+  onAmountChange?: (amount: string) => void;
+}
+
+export function DepositForm({ onAmountChange }: DepositFormProps) {
   const [amount, setAmount] = useState('')
   const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank()
   const { timeRemaining } = useTimelock(unlockTime)
   const { error: showError } = useSecureAlert()
+
+  // Notify parent component of amount changes
+  useEffect(() => {
+    if (onAmountChange) {
+      onAmountChange(amount);
+    }
+  }, [amount, onAmountChange]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -24,7 +35,8 @@ export function DepositForm() {
       showError('Invalid Amount', VALIDATION.INVALID_AMOUNT);
       return;
     }
-    deposit(amount);
+    
+    deposit(validation.value);
   };
 
   const formatLockInfo = () => {
