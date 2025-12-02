@@ -1,233 +1,207 @@
 /**
- * Secure localStorage utilities with encryption support
- * Provides encrypted storage and validation for sensitive data
+ * Secure storage utilities with validation and sanitization
+ * Replaces unsafe direct localStorage usage to prevent XSS attacks
  */
 
-// Simple encryption/decryption using Web Crypto API
-class SecureStorage {
-  private readonly STORAGE_PREFIX = 'ajo_secure_'
-  private readonly ALGORITHM = 'AES-GCM'
-  
-  /**
-   * Generate a random encryption key
-   */
-  private async generateKey(): Promise<CryptoKey> {
-    return await crypto.subtle.generateKey(
-      {
-        name: this.ALGORITHM,
-        length: 256,
-      },
-      true, // extractable
-      ['encrypt', 'decrypt']
-    )
+export interface StorageData {
+  [key: string]: unknown;
+}
+
+const STORAGE_PREFIX = 'ajo_secure_';
+
+/**
+ * Sanitizes input to prevent XSS attacks
+ */
+function sanitizeInput(input: string): string {
+  return input
+    .replace(/[<>'"&]/g, (match) => {
+      const entities: Record<string, string> = {
+        '<': '<',
+        '>': '>',
+        '"': '"',
+        "'": ''',
+        '&': '&',
+      };
+      return entities[match];
+    })
+    .trim()
+    .substring(0, 100); // Limit length
+}
+
+/**
+ * Validates JSON structure before parsing
+ */
+function validateJSONStructure(data: unknown): boolean {
+  if (typeof data !== 'object' || data === null) {
+    return false;
   }
 
-  /**
-   * Convert ArrayBuffer to base64 string
-   */
-  private arrayBufferToBase64(buffer: ArrayBuffer): string {
-    const bytes = new Uint8Array(buffer)
-    let binary = ''
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i])
-    }
-    return btoa(binary)
+  // For arrays, ensure they're not too large
+  if (Array.isArray(data) && data.length > 100) {
+    return false;
   }
 
-  /**
-   * Convert base64 string to ArrayBuffer
-   */
-  private base64ToArrayBuffer(base64: string): ArrayBuffer {
-    const binary = atob(base64)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i)
-    }
-    return bytes.buffer
-  }
-
-  /**
-   * Get or create encryption key
-   */
-  private async getOrCreateKey(): Promise<CryptoKey> {
-    const storedKey = localStorage.getItem(this.STORAGE_PREFIX + 'key')
+  // Check for dangerous properties
+  const dangerousProps = ['__proto__', 'constructor', 'prototype'];
+  const checkObject = (obj: unknown): boolean => {
+    if (typeof obj !== 'object' || obj === null) return true;
     
-    if (storedKey) {
-      const keyData = JSON.parse(storedKey)
-      return await crypto.subtle.importKey(
-        'jwk',
-        keyData,
-        { name: this.ALGORITHM },
-        true,
-        ['encrypt', 'decrypt']
-      )
-    } else {
-      const key = await this.generateKey()
-      const exported = await crypto.subtle.exportKey('jwk', key)
-      localStorage.setItem(this.STORAGE_PREFIX + 'key', JSON.stringify(exported))
-      return key
+    for (const key of Object.keys(obj)) {
+      if (dangerousProps.includes(key)) return false;
+      if (!checkObject((obj as Record<string, unknown>)[key])) return false;
     }
-  }
+    return true;
+  };
 
-  /**
-   * Validate data before storage
-   */
-  private validateData(data: unknown): boolean {
-    try {
-      // Check if data is serializable
-      JSON.stringify(data)
-      return true
-    } catch {
-      return false
+  return checkObject(data);
+}
+
+/**
+ * Safely parses JSON with validation
+ */
+function safeJSONParse<T = unknown>(jsonString: string, fallback: T): T {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (validateJSONStructure(parsed)) {
+      return parsed as T;
     }
-  }
-
-  /**
-   * Encrypt and store data
-   */
-  async setItem<T>(key: string, value: T): Promise<void> {
-    try {
-      if (!this.validateData(value)) {
-        throw new Error('Data is not serializable')
-      }
-
-      const encryptionKey = await this.getOrCreateKey()
-      const iv = crypto.getRandomValues(new Uint8Array(12)) // 96-bit IV for AES-GCM
-      
-      // Convert data to string and encode
-      const dataString = JSON.stringify(value)
-      const dataBuffer = new TextEncoder().encode(dataString)
-      
-      // Encrypt
-      const encrypted = await crypto.subtle.encrypt(
-        { name: this.ALGORITHM, iv },
-        encryptionKey,
-        dataBuffer
-      )
-      
-      // Store encrypted data with IV
-      const storedData = {
-        iv: this.arrayBufferToBase64(iv.buffer),
-        data: this.arrayBufferToBase64(encrypted)
-      }
-      
-      localStorage.setItem(
-        this.STORAGE_PREFIX + key,
-        JSON.stringify(storedData)
-      )
-    } catch (error) {
-      console.error('Failed to encrypt and store data:', error)
-      throw new Error('Failed to store data securely')
-    }
-  }
-
-  /**
-   * Decrypt and retrieve data
-   */
-  async getItem<T>(key: string): Promise<T | null> {
-    try {
-      const storedData = localStorage.getItem(this.STORAGE_PREFIX + key)
-      
-      if (!storedData) {
-        return null
-      }
-      
-      const parsed = JSON.parse(storedData)
-      const encryptionKey = await this.getOrCreateKey()
-      
-      // Decrypt
-      const decrypted = await crypto.subtle.decrypt(
-        {
-          name: this.ALGORITHM,
-          iv: new Uint8Array(this.base64ToArrayBuffer(parsed.iv))
-        },
-        encryptionKey,
-        this.base64ToArrayBuffer(parsed.data)
-      )
-      
-      // Parse decrypted data
-      const dataString = new TextDecoder().decode(decrypted)
-      return JSON.parse(dataString)
-    } catch (error) {
-      console.error('Failed to decrypt and retrieve data:', error)
-      // Return null for corrupted data instead of throwing
-      return null
-    }
-  }
-
-  /**
-   * Remove encrypted data
-   */
-  removeItem(key: string): void {
-    localStorage.removeItem(this.STORAGE_PREFIX + key)
-  }
-
-  /**
-   * Check if encrypted data exists
-   */
-  hasItem(key: string): boolean {
-    return localStorage.getItem(this.STORAGE_PREFIX + key) !== null
-  }
-
-  /**
-   * Clear all encrypted data
-   */
-  clear(): void {
-    const keys = Object.keys(localStorage)
-    for (const key of keys) {
-      if (key.startsWith(this.STORAGE_PREFIX)) {
-        localStorage.removeItem(key)
-      }
-    }
-  }
-
-  /**
-   * Migrate legacy unencrypted data to encrypted storage
-   */
-  async migrateLegacyData(key: string): Promise<void> {
-    try {
-      const legacyData = localStorage.getItem(key)
-      if (legacyData && !this.hasItem(key)) {
-        const parsed = JSON.parse(legacyData)
-        await this.setItem(key.replace(this.STORAGE_PREFIX, ''), parsed)
-        localStorage.removeItem(key)
-      }
-    } catch (error) {
-      console.warn('Failed to migrate legacy data:', error)
-    }
+    console.warn('Invalid JSON structure detected in secureStorage');
+    return fallback;
+  } catch (error) {
+    console.warn('Failed to parse JSON in secureStorage:', error);
+    return fallback;
   }
 }
 
-// Export singleton instance
-export const secureStorage = new SecureStorage()
+/**
+ * Securely stores data in localStorage with sanitization
+ */
+export function secureSetItem<T extends StorageData>(key: string, value: T): boolean {
+  try {
+    const sanitizedValue = JSON.stringify(value, (k, v) => {
+      if (typeof v === 'string') {
+        return sanitizeInput(v);
+      }
+      return v;
+    });
+    
+    localStorage.setItem(STORAGE_PREFIX + key, sanitizedValue);
+    return true;
+  } catch (error) {
+    console.error('Failed to securely store data:', error);
+    return false;
+  }
+}
 
-// Utility functions for common operations
-export const secureStorageUtils = {
-  /**
-   * Store saved piggy states with encryption
-   */
-  async setSavedStates: async (states: unknown) => {
-    await secureStorage.setItem('savedPiggyStates', states)
-  },
+/**
+ * Securely retrieves data from localStorage with validation
+ */
+export function secureGetItem<T extends StorageData>(key: string, fallback: T): T {
+  try {
+    const stored = localStorage.getItem(STORAGE_PREFIX + key);
+    if (!stored) return fallback;
+    
+    const parsed = safeJSONParse<T>(stored, fallback);
+    return validateJSONStructure(parsed) ? parsed : fallback;
+  } catch (error) {
+    console.error('Failed to securely retrieve data:', error);
+    return fallback;
+  }
+}
 
-  /**
-   * Get saved piggy states with decryption
-   */
-  async getSavedStates: async () => {
-    return await secureStorage.getItem('savedPiggyStates')
-  },
+/**
+ * Securely removes data from localStorage
+ */
+export function secureRemoveItem(key: string): boolean {
+  try {
+    localStorage.removeItem(STORAGE_PREFIX + key);
+    return true;
+  } catch (error) {
+    console.error('Failed to securely remove data:', error);
+    return false;
+  }
+}
 
-  /**
-   * Remove saved piggy states
-   */
-  removeSavedStates: () => {
-    secureStorage.removeItem('savedPiggyStates')
-  },
+/**
+ * Securely clears all app data from localStorage
+ */
+export function secureClear(): boolean {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(STORAGE_PREFIX)) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    return true;
+  } catch (error) {
+    console.error('Failed to securely clear data:', error);
+    return false;
+  }
+}
 
-  /**
-   * Migrate existing unencrypted piggy states
-   */
-  migratePiggyStates: async () => {
-    await secureStorage.migrateLegacyData('savedPiggyStates')
+/**
+ * Validates that a storage key is safe to use
+ */
+function validateStorageKey(key: string): boolean {
+  // Only allow alphanumeric characters, hyphens, underscores, and dots
+  return /^[a-zA-Z0-9._-]+$/.test(key) && key.length <= 50;
+}
+
+/**
+ * Secure storage with type safety and validation
+ */
+export class SecureStorage<T extends StorageData> {
+  private prefix: string;
+
+  constructor(prefix: string = 'default') {
+    this.prefix = validateStorageKey(prefix) ? prefix : 'default';
+  }
+
+  set(key: string, value: T): boolean {
+    if (!validateStorageKey(key)) {
+      console.error('Invalid storage key:', key);
+      return false;
+    }
+    return secureSetItem(`${this.prefix}_${key}`, value);
+  }
+
+  get(key: string, fallback: T): T {
+    if (!validateStorageKey(key)) {
+      console.error('Invalid storage key:', key);
+      return fallback;
+    }
+    return secureGetItem<T>(`${this.prefix}_${key}`, fallback);
+  }
+
+  remove(key: string): boolean {
+    if (!validateStorageKey(key)) {
+      console.error('Invalid storage key:', key);
+      return false;
+    }
+    return secureRemoveItem(`${this.prefix}_${key}`);
+  }
+
+  clear(): boolean {
+    try {
+      const keysToRemove: string[] = [];
+      const prefix = STORAGE_PREFIX + this.prefix + '_';
+      
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      return true;
+    } catch (error) {
+      console.error('Failed to clear secure storage:', error);
+      return false;
+    }
   }
 }

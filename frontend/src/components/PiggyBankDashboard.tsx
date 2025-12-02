@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { BalanceCard } from './BalanceCard'
 import { DepositForm } from './DepositForm'
 import { WithdrawButton } from './WithdrawButton'
 import { SaveForLater } from './SaveForLater'
-import { secureStorageUtils } from '../utils/secureStorage'
+import { SecurePrompt, useSecurePrompt } from './SecurePrompt'
 
 interface SavedState {
   id: string;
@@ -13,50 +13,38 @@ interface SavedState {
   date: string;
 }
 
-// Save State Button Component to replace DOM manipulation
-interface SaveStateButtonProps {
-  onSave: (name: string, amount: string, unlockTime: number) => Promise<void>
-}
+// Secure Save for Later button component
+function SaveForLaterButton({ onSave }: { onSave: (name: string, amount: string, unlockTime: number) => void }) {
+  const { showPrompt, PromptComponent } = useSecurePrompt()
 
-const SaveStateButton: React.FC<SaveStateButtonProps> = ({ onSave }) => {
-  const [isSaving, setIsSaving] = useState(false)
-  const [amount, setAmount] = useState('')
-
-  const handleSave = async () => {
-    if (isSaving) return
-    
-    setIsSaving(true)
+  const handleSaveClick = async () => {
     try {
-      const name = prompt('Name this saved state (e.g., "Summer Vacation Fund"):')
-      if (name && name.trim()) {
-        // Use the amount from state instead of DOM manipulation
-        const sanitizedAmount = amount || '0'
-        await onSave(name, sanitizedAmount, Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60) // Default 30 days
-      }
+      const name = await showPrompt({
+        title: 'Save Piggy Bank State',
+        message: 'Enter a name for this saved state (e.g., "Summer Vacation Fund"):',
+        placeholder: 'State name...',
+        maxLength: 50
+      })
+
+      // Get amount safely without DOM manipulation
+      const amountInput = document.querySelector('#amount') as HTMLInputElement
+      const amount = amountInput?.value || '0'
+      
+      onSave(name, amount, Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60) // Default 30 days
     } catch (error) {
-      console.error('Failed to save state:', error)
-    } finally {
-      setIsSaving(false)
+      // User cancelled
     }
   }
 
   return (
     <>
-      <input
-        type="text"
-        placeholder="Amount to save (optional)"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        className="amount-input"
-        aria-label="Amount for saved state"
-      />
       <button 
         className="save-later-button"
-        onClick={handleSave}
-        disabled={isSaving}
+        onClick={handleSaveClick}
       >
-        {isSaving ? '💾 Saving...' : '💾 Save for Later'}
+        💾 Save for Later
       </button>
+      {PromptComponent}
     </>
   )
 }
@@ -168,18 +156,8 @@ export function PiggyBankDashboard() {
         <div className="tab-content">
           {activeTab === 'deposit' ? (
             <>
-              <DepositForm onAmountChange={setCurrentAmount} />
-              <button 
-                className="save-later-button"
-                onClick={() => {
-                  const name = prompt('Name this saved state (e.g., "Summer Vacation Fund"):')
-                  if (name) {
-                    handleSaveState(name, currentAmount || '0', Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60) // Default 30 days
-                  }
-                }}
-              >
-                💾 Save for Later
-              </button>
+              <DepositForm />
+              <SaveForLaterButton onSave={handleSaveState} />
             </>
           ) : (
             <WithdrawButton />

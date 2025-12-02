@@ -5,6 +5,7 @@ import { PiggyBankDashboard } from './components/PiggyBankDashboard'
 import { WalletConnectPage } from './components/WalletConnectPage'
 import { AdminDashboard } from './components/AdminDashboard'
 import { TransactionToast } from './components/TransactionToast'
+import { NotificationProvider, NotificationContainer } from './components/SecureNotification'
 import { useWalletHistory } from './hooks/useWalletHistory'
 import { usePiggyBank } from './hooks/usePiggyBank'
 import { DebugPage } from './components/DebugPage'
@@ -35,9 +36,11 @@ function App() {
   }, [address, owner])
 
   return (
-    <div className="app">
-      <TransactionToast />
-      <Header />
+    <NotificationProvider>
+      <div className="app">
+        <NotificationContainer />
+        <TransactionToast />
+        <Header />
 
       {/* Navigation */}
       <nav className="app-nav">
@@ -123,6 +126,7 @@ function App() {
         <p>Built with REOWN AppKit & WalletConnect on Base</p>
       </footer>
     </div>
+    </NotificationProvider>
   )
 }
 
