@@ -1,6 +1,6 @@
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useWatchContractEvent } from 'wagmi'
 import { parseEther } from 'viem'
-import { useMemo, useCallback, useRef } from 'react'
+import { useMemo, useCallback, useRef, useEffect } from 'react'
 import { PIGGYBANK_ABI, PIGGYBANK_ADDRESS } from '../config/contracts'
 
 interface Transaction {
@@ -14,6 +14,10 @@ interface Transaction {
 export function usePiggyBank() {
   const { address } = useAccount()
   const { writeContract, data: hash, isPending } = useWriteContract()
+
+  // Refs for cleanup to prevent memory leaks
+  const depositedEventRef = useRef<(() => void) | undefined>(undefined)
+  const withdrawnEventRef = useRef<(() => void) | undefined>(undefined)
 
   // Memoize balance to prevent unnecessary re-renders
   const { data: balance, refetch: refetchBalance } = useReadContract({
@@ -41,27 +45,46 @@ export function usePiggyBank() {
     refetchBalance()
   }, [refetchBalance])
 
-  // Watch for Deposited events with optimized callback
+  // Proper cleanup with useEffect to prevent memory leaks
+  useEffect(() => {
+    const handleDepositedEvent = () => {
+      refetchBalance()
+    }
+
+    const handleWithdrawnEvent = () => {
+      refetchBalance()
+    }
+
+    // Store cleanup functions
+    depositedEventRef.current = handleDepositedEvent
+    withdrawnEventRef.current = handleWithdrawnEvent
+
+    // Cleanup function
+    return () => {
+      depositedEventRef.current = undefined
+      withdrawnEventRef.current = undefined
+    }
+  }, [refetchBalance])
+
+  // Watch for Deposited events with cleanup
   useWatchContractEvent({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
     eventName: 'Deposited',
     onLogs(logs) {
       console.log('Deposited event:', logs)
-      // Use callback to refetch balance
-      balanceRefetch()
+      depositedEventRef.current?.()
     },
   })
 
-  // Watch for Withdrawn events with optimized callback
+  // Watch for Withdrawn events with cleanup
   useWatchContractEvent({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
     eventName: 'Withdrawn',
     onLogs(logs) {
       console.log('Withdrawn event:', logs)
-      // Use callback to refetch balance
-      balanceRefetch()
+      withdrawnEventRef.current?.()
     },
   })
 

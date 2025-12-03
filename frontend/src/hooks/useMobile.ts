@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 /**
  * Custom hook for mobile device detection and responsive behavior
@@ -100,7 +100,11 @@ export function useViewport() {
   })
 
   useEffect(() => {
+    let isActive = true
+
     const updateViewport = () => {
+      if (!isActive) return
+      
       setViewport({
         width: window.innerWidth,
         height: window.innerHeight,
@@ -113,6 +117,7 @@ export function useViewport() {
     window.addEventListener('orientationchange', updateViewport)
 
     return () => {
+      isActive = false
       window.removeEventListener('resize', updateViewport)
       window.removeEventListener('orientationchange', updateViewport)
     }
@@ -120,7 +125,9 @@ export function useViewport() {
 
   // Set CSS custom property for 100vh fix on mobile
   useEffect(() => {
-    document.documentElement.style.setProperty('--vh', `${viewport.vh}px`)
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--vh', `${viewport.vh}px`)
+    }
   }, [viewport.vh])
 
   return viewport
@@ -133,7 +140,11 @@ export function useKeyboardHeight() {
   const [keyboardHeight, setKeyboardHeight] = useState(0)
 
   useEffect(() => {
+    let isActive = true
+
     const handleResize = () => {
+      if (!isActive) return
+      
       // This is a simple heuristic for detecting mobile keyboard
       const isMobile = window.innerWidth <= 768
       if (isMobile) {
@@ -149,11 +160,13 @@ export function useKeyboardHeight() {
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize)
       return () => {
+        isActive = false
         window.visualViewport?.removeEventListener('resize', handleResize)
       }
     } else {
       window.addEventListener('resize', handleResize)
       return () => {
+        isActive = false
         window.removeEventListener('resize', handleResize)
       }
     }
@@ -169,13 +182,16 @@ export function usePullToRefresh(onRefresh: () => void) {
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [canPull, setCanPull] = useState(false)
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     let startY = 0
     let currentY = 0
     let pullStartY = 0
+    let isActive = true
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (!isActive) return
       startY = e.touches[0].clientY
       pullStartY = startY
       
@@ -186,7 +202,7 @@ export function usePullToRefresh(onRefresh: () => void) {
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!canPull || isRefreshing) return
+      if (!isActive || !canPull || isRefreshing) return
 
       currentY = e.touches[0].clientY
       const pullDelta = currentY - pullStartY
@@ -204,16 +220,23 @@ export function usePullToRefresh(onRefresh: () => void) {
     }
 
     const handleTouchEnd = () => {
-      if (!canPull || isRefreshing) return
+      if (!isActive || !canPull || isRefreshing) return
 
       if (pullDistance >= 80) {
         setIsRefreshing(true)
         onRefresh()
         
+        // Clear any existing timeout
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current)
+        }
+        
         // Reset after refresh completes
-        setTimeout(() => {
-          setIsRefreshing(false)
-          setPullDistance(0)
+        refreshTimeoutRef.current = setTimeout(() => {
+          if (isActive) {
+            setIsRefreshing(false)
+            setPullDistance(0)
+          }
         }, 1000)
       }
 
@@ -221,16 +244,25 @@ export function usePullToRefresh(onRefresh: () => void) {
       setCanPull(false)
     }
 
+    const cleanup = () => {
+      isActive = false
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+        refreshTimeoutRef.current = null
+      }
+    }
+
     document.addEventListener('touchstart', handleTouchStart, { passive: false })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', handleTouchEnd, { passive: false })
 
     return () => {
+      cleanup()
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
       document.removeEventListener('touchend', handleTouchEnd)
     }
-  }, [canPull, isRefreshing, pullDistance, onRefresh])
+  }, [onRefresh])
 
   return {
     pullDistance,
