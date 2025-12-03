@@ -1,7 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAccount, useBalance, useDisconnect } from 'wagmi'
 import { formatEther } from 'viem'
-import { CheckIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
+
+// Network explorer URLs mapping
+const NETWORK_EXPLORERS = {
+  84532: 'https://sepolia.basescan.org', // Base Sepolia
+  8453: 'https://basescan.org',          // Base Mainnet
+  1: 'https://etherscan.io',            // Ethereum Mainnet
+  11155111: 'https://sepolia.etherscan.io', // Ethereum Sepolia
+  137: 'https://polygonscan.com',        // Polygon Mainnet
+  80001: 'https://mumbai.polygonscan.com', // Polygon Mumbai
+} as const
 
 export function WalletInfo() {
   const { address, isConnected, chain } = useAccount()
@@ -63,9 +72,9 @@ export function WalletInfo() {
             aria-label="Copy to clipboard"
           >
             {copied ? (
-              <CheckIcon className="h-5 w-5 text-green-500" />
+              <span style={{ color: 'var(--success)', fontSize: '0.875rem' }}>✓</span>
             ) : (
-              <DocumentDuplicateIcon className="h-5 w-5 text-gray-400 group-hover:text-gray-600" />
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>📋</span>
             )}
             <span className="tooltip">{copied ? 'Copied!' : 'Copy'}</span>
           </button>
@@ -108,6 +117,12 @@ export function WalletInfo() {
               }
             }
             window.open(getExplorerUrl(chain?.id), '_blank')
+            const explorerUrl = chain?.id ? NETWORK_EXPLORERS[chain.id as keyof typeof NETWORK_EXPLORERS] : null
+            if (explorerUrl) {
+              window.open(`${explorerUrl}/address/${address}`, '_blank')
+            } else {
+              alert('Explorer not available for this network')
+            }
           }}
         >
           View on Explorer

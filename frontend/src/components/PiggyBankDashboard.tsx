@@ -60,19 +60,53 @@ export function PiggyBankDashboard() {
     const saved = localStorage.getItem('savedPiggyStates')
     return saved ? JSON.parse(saved) : []
   })
+  const [savedStates, setSavedStates] = useState<SavedState[]>([])
   const [showSavedStates, setShowSavedStates] = useState(false)
+  const [currentAmount, setCurrentAmount] = useState('')
 
-  const handleSaveState = (name: string, amount: string, unlockTime: number) => {
-    const newState: SavedState = {
-      id: Date.now().toString(),
-      name,
-      amount,
-      unlockTime,
-      date: new Date().toISOString()
+  // Load saved states on component mount
+  useEffect(() => {
+    const loadSavedStates = async () => {
+      try {
+        // Migrate any legacy unencrypted data first
+        await secureStorageUtils.migratePiggyStates()
+        
+        // Load encrypted data
+        const loaded = await secureStorageUtils.getSavedStates()
+        if (Array.isArray(loaded)) {
+          setSavedStates(loaded)
+        }
+      } catch (error) {
+        console.warn('Failed to load saved states:', error)
+        setSavedStates([])
+      }
     }
-    const updatedStates = [...savedStates, newState]
-    setSavedStates(updatedStates)
-    localStorage.setItem('savedPiggyStates', JSON.stringify(updatedStates))
+    
+    loadSavedStates()
+  }, [])
+
+  const handleSaveState = async (name: string, amount: string, unlockTime: number) => {
+    try {
+      // Sanitize inputs
+      const sanitizedName = name.trim().slice(0, 100) // Limit length and trim
+      const sanitizedAmount = amount.trim().slice(0, 20) // Limit amount string length
+      
+      const newState: SavedState = {
+        id: Date.now().toString(),
+        name: sanitizedName,
+        amount: sanitizedAmount,
+        unlockTime,
+        date: new Date().toISOString()
+      }
+      const updatedStates = [...savedStates, newState]
+      setSavedStates(updatedStates)
+      
+      // Store encrypted using secure storage
+      await secureStorageUtils.setSavedStates(updatedStates)
+    } catch (error) {
+      console.error('Failed to save state securely:', error)
+      alert('Failed to save state. Please try again.')
+    }
   }
 
   return (
@@ -95,13 +129,17 @@ export function PiggyBankDashboard() {
           savedStates={savedStates}
           onLoadState={(state) => {
             // Handle loading a saved state
-            console.log('Loading state:', state)
             setShowSavedStates(false)
           }}
-          onDeleteState={(id) => {
-            const updated = savedStates.filter(state => state.id !== id)
-            setSavedStates(updated)
-            localStorage.setItem('savedPiggyStates', JSON.stringify(updated))
+          onDeleteState={async (id) => {
+            try {
+              const updated = savedStates.filter(state => state.id !== id)
+              setSavedStates(updated)
+              await secureStorageUtils.setSavedStates(updated)
+            } catch (error) {
+              console.error('Failed to delete state:', error)
+              alert('Failed to delete state. Please try again.')
+            }
           }}
         />
       )}

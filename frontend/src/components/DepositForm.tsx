@@ -12,10 +12,22 @@ interface DepositFormProps {
 }
 
 export function DepositForm({ amount, setAmount }: DepositFormProps) {
+  onAmountChange?: (amount: string) => void;
+}
+
+export function DepositForm({ onAmountChange }: DepositFormProps) {
+  const [amount, setAmount] = useState('')
   const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank()
   const { timeRemaining } = useTimelock(unlockTime)
   const { error: showError } = useSecureAlert()
   const isMobile = useMobile()
+
+  // Notify parent component of amount changes
+  useEffect(() => {
+    if (onAmountChange) {
+      onAmountChange(amount);
+    }
+  }, [amount, onAmountChange]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -30,7 +42,8 @@ export function DepositForm({ amount, setAmount }: DepositFormProps) {
       showError('Invalid Amount', VALIDATION.INVALID_AMOUNT);
       return;
     }
-    deposit(amount);
+    
+    deposit(validation.value);
   };
 
   const formatLockInfo = () => {
