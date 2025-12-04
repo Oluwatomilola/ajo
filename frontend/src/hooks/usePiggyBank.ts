@@ -12,12 +12,11 @@ interface Transaction {
 }
 
 export function usePiggyBank() {
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
   const { writeContract, data: hash, isPending } = useWriteContract()
-
-  // Refs for cleanup to prevent memory leaks
-  const depositedEventRef = useRef<(() => void) | undefined>(undefined)
-  const withdrawnEventRef = useRef<(() => void) | undefined>(undefined)
+  
+  // Debounce refetch to prevent excessive network calls
+  const refetchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Memoize balance to prevent unnecessary re-renders
   const { data: balance, refetch: refetchBalance } = useReadContract({
@@ -40,49 +39,59 @@ export function usePiggyBank() {
     functionName: 'owner',
   })
 
-  // Create refetch callbacks once and reuse them
-  const balanceRefetch = useCallback(() => {
-    refetchBalance()
+  // Debounced refetch to prevent excessive network calls
+  const debouncedRefetch = useCallback(() => {
+    // Clear existing timeout
+    if (refetchTimeoutRef.current) {
+      clearTimeout(refetchTimeoutRef.current)
+    }
+    
+    // Set new timeout
+    refetchTimeoutRef.current = setTimeout(() => {
+      refetchBalance()
+      refetchTimeoutRef.current = null
+    }, 1000) // 1 second debounce
   }, [refetchBalance])
 
-  // Proper cleanup with useEffect to prevent memory leaks
+  // Cleanup timeout on unmount
   useEffect(() => {
-    const handleDepositedEvent = () => {
-      refetchBalance()
-    }
-
-    const handleWithdrawnEvent = () => {
-      refetchBalance()
-    }
-
-    // Store cleanup functions
-    depositedEventRef.current = handleDepositedEvent
-    withdrawnEventRef.current = handleWithdrawnEvent
-
-    // Cleanup function
     return () => {
-      depositedEventRef.current = undefined
-      withdrawnEventRef.current = undefined
+      if (refetchTimeoutRef.current) {
+        clearTimeout(refetchTimeoutRef.current)
+        refetchTimeoutRef.current = null
+      }
     }
-  }, [refetchBalance])
+  }, [])
 
-  // Watch for Deposited events with cleanup
+  // Watch for Deposited events with debounced refetch
   useWatchContractEvent({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
     eventName: 'Deposited',
     onLogs(logs) {
-      depositedEventRef.current?.()
+      // Only refetch if the event is from our connected address
+      if (isConnected && address && logs.some(log => 
+        log.args && typeof log.args === 'object' && log.args !== null && 
+        'from' in log.args && log.args.from === address
+      )) {
+        debouncedRefetch()
+      }
     },
   })
 
-  // Watch for Withdrawn events with cleanup
+  // Watch for Withdrawn events with debounced refetch
   useWatchContractEvent({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
     eventName: 'Withdrawn',
     onLogs(logs) {
-      withdrawnEventRef.current?.()
+      // Only refetch if the event is from our connected address
+      if (isConnected && address && logs.some(log => 
+        log.args && typeof log.args === 'object' && log.args !== null && 
+        'to' in log.args && log.args.to === address
+      )) {
+        debouncedRefetch()
+      }
     },
   })
 
@@ -137,6 +146,7 @@ export function usePiggyBank() {
     refetchBalance,
     refetchUnlockTime,
     isOwner,
+    debouncedRefetch,
   }), [
     balance, 
     unlockTime, 
@@ -150,6 +160,7 @@ export function usePiggyBank() {
     hash, 
     refetchBalance, 
     refetchUnlockTime,
-    isOwner
+    isOwner,
+    debouncedRefetch
   ])
 }
