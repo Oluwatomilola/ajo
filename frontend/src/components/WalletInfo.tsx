@@ -2,6 +2,16 @@ import { useState } from 'react'
 import { useAccount, useBalance, useDisconnect } from 'wagmi'
 import { formatEther } from 'viem'
 
+// Network explorer URLs mapping
+const NETWORK_EXPLORERS = {
+  84532: 'https://sepolia.basescan.org', // Base Sepolia
+  8453: 'https://basescan.org',          // Base Mainnet
+  1: 'https://etherscan.io',            // Ethereum Mainnet
+  11155111: 'https://sepolia.etherscan.io', // Ethereum Sepolia
+  137: 'https://polygonscan.com',        // Polygon Mainnet
+  80001: 'https://mumbai.polygonscan.com', // Polygon Mumbai
+} as const
+
 export function WalletInfo() {
   const { address, isConnected, chain } = useAccount()
   const { disconnect } = useDisconnect()
@@ -107,6 +117,12 @@ export function WalletInfo() {
               }
             }
             window.open(getExplorerUrl(chain?.id), '_blank')
+            const explorerUrl = chain?.id ? NETWORK_EXPLORERS[chain.id as keyof typeof NETWORK_EXPLORERS] : null
+            if (explorerUrl) {
+              window.open(`${explorerUrl}/address/${address}`, '_blank')
+            } else {
+              alert('Explorer not available for this network')
+            }
           }}
         >
           View on Explorer

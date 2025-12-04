@@ -72,6 +72,7 @@ export function usePiggyBank() {
     abi: PIGGYBANK_ABI,
     eventName: 'Deposited',
     onLogs(logs) {
+      console.log('Deposited event:', logs)
       depositedEventRef.current?.()
     },
   })
@@ -82,6 +83,7 @@ export function usePiggyBank() {
     abi: PIGGYBANK_ABI,
     eventName: 'Withdrawn',
     onLogs(logs) {
+      console.log('Withdrawn event:', logs)
       withdrawnEventRef.current?.()
     },
   })

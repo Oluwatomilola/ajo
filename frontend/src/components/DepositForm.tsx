@@ -14,6 +14,11 @@ interface DepositFormProps {
 }
 
 export function DepositForm({ amount, setAmount }: DepositFormProps) {
+  onAmountChange?: (amount: string) => void;
+}
+
+export function DepositForm({ onAmountChange }: DepositFormProps) {
+  const [amount, setAmount] = useState('')
   const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank()
   const { timeRemaining } = useTimelock(unlockTime)
   const { error: showError } = useSecureAlert()
@@ -21,6 +26,13 @@ export function DepositForm({ amount, setAmount }: DepositFormProps) {
   const [secureAmount, setSecureAmount] = useState('')
   const [amountValid, setAmountValid] = useState(false)
   const [validationError, setValidationError] = useState('')
+
+  // Notify parent component of amount changes
+  useEffect(() => {
+    if (onAmountChange) {
+      onAmountChange(amount);
+    }
+  }, [amount, onAmountChange]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -69,6 +81,15 @@ export function DepositForm({ amount, setAmount }: DepositFormProps) {
     }
 
     deposit(secureAmount);
+
+  const handleDeposit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || parseFloat(amount) <= 0) {
+      showError('Invalid Amount', VALIDATION.INVALID_AMOUNT);
+      return;
+    }
+    
+    deposit(validation.value);
   };
 
   const formatLockInfo = () => {
@@ -121,7 +142,7 @@ export function DepositForm({ amount, setAmount }: DepositFormProps) {
       <button
         type="submit"
         className={`btn btn-primary ${isMobile ? 'mobile-btn mobile-btn-primary' : ''}`}
-        disabled={!amountValid || !secureAmount || isPending || isConfirming}
+        disabled={!amount || isPending || isConfirming}
       >
         {isPending
           ? 'Waiting for approval...'

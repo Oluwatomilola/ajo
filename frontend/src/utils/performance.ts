@@ -93,7 +93,7 @@ export function usePerformanceMonitor(componentName: string) {
 /**
  * Debounce function for performance optimization
  */
-export function debounce<T extends (...args: unknown[]) => unknown>(
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -108,7 +108,7 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 /**
  * Throttle function for performance optimization
  */
-export function throttle<T extends (...args: unknown[]) => unknown>(
+export function throttle<T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -230,7 +230,7 @@ export function generatePerformanceReport(): string {
         existing.avg = existing.total / existing.count
       }
       return acc
-    }, [] as { name: string; total: number; count: number; avg: number }[]).map(item => 
+    }, [] as any[]).map(item => 
       `  ${item.name}: ${item.avg.toFixed(2)}ms (${item.count} renders)`
     ),
     '',
