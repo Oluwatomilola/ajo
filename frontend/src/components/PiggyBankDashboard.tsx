@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { BalanceCard } from './BalanceCard'
 import { DepositForm } from './DepositForm'
 import { WithdrawButton } from './WithdrawButton'
 import { SaveForLater } from './SaveForLater'
+import { SecurePrompt, useSecurePrompt } from './SecurePrompt'
+import { useMobile } from '../hooks/useMobile'
 
 interface SavedState {
   id: string;
@@ -12,8 +14,48 @@ interface SavedState {
   date: string;
 }
 
+// Secure Save for Later button component
+function SaveForLaterButton({ 
+  onSave, 
+  amount 
+}: { 
+  onSave: (name: string, amount: string, unlockTime: number) => void,
+  amount: string 
+}) {
+  const { showPrompt, PromptComponent } = useSecurePrompt()
+  const isMobile = useMobile()
+
+  const handleSaveClick = async () => {
+    try {
+      const name = await showPrompt({
+        title: 'Save Piggy Bank State',
+        message: 'Enter a name for this saved state (e.g., "Summer Vacation Fund"):',
+        placeholder: 'State name...',
+        maxLength: 50
+      })
+      
+      onSave(name, amount || '0', Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60) // Default 30 days
+    } catch (error) {
+      // User cancelled
+    }
+  }
+
+  return (
+    <>
+      <button 
+        className={`save-later-button ${isMobile ? 'mobile-btn mobile-btn-primary' : ''}`}
+        onClick={handleSaveClick}
+      >
+        💾 Save for Later
+      </button>
+      {PromptComponent}
+    </>
+  )
+}
+
 export function PiggyBankDashboard() {
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit')
+  const [amount, setAmount] = useState('')
   const [savedStates, setSavedStates] = useState<SavedState[]>(() => {
     const saved = localStorage.getItem('savedPiggyStates')
     return saved ? JSON.parse(saved) : []
@@ -53,7 +95,6 @@ export function PiggyBankDashboard() {
           savedStates={savedStates}
           onLoadState={(state) => {
             // Handle loading a saved state
-            console.log('Loading state:', state)
             setShowSavedStates(false)
           }}
           onDeleteState={(id) => {
@@ -85,19 +126,8 @@ export function PiggyBankDashboard() {
         <div className="tab-content">
           {activeTab === 'deposit' ? (
             <>
-              <DepositForm />
-              <button 
-                className="save-later-button"
-                onClick={() => {
-                  const name = prompt('Name this saved state (e.g., "Summer Vacation Fund"):')
-                  if (name) {
-                    const amount = (document.querySelector('#amount') as HTMLInputElement)?.value || '0'
-                    handleSaveState(name, amount, Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60) // Default 30 days
-                  }
-                }}
-              >
-                💾 Save for Later
-              </button>
+              <DepositForm amount={amount} setAmount={setAmount} />
+              <SaveForLaterButton onSave={handleSaveState} amount={amount} />
             </>
           ) : (
             <WithdrawButton />

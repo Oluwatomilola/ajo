@@ -124,7 +124,7 @@ export async function checkContractStatus(): Promise<ContractStatus> {
     
     // Analyze ABI functions and events
     const functions: ContractFunction[] = PIGGYBANK_ABI
-      .filter(item => item.type === 'function')
+      .filter((item): item is any => item.type === 'function')
       .map(fn => ({
         name: (fn as any).name || 'unknown',
         signature: `${(fn as any).name}(${(fn as any).inputs?.map((i: any) => i.type).join(',') || ''})`,
@@ -134,7 +134,7 @@ export async function checkContractStatus(): Promise<ContractStatus> {
       }))
     
     const events: ContractEvent[] = PIGGYBANK_ABI
-      .filter(item => item.type === 'event')
+      .filter((item): item is any => item.type === 'event')
       .map(event => ({
         name: (event as any).name || 'unknown',
         signature: `${(event as any).name}(${(event as any).inputs?.map((i: any) => i.type).join(',') || ''})`,

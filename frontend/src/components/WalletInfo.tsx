@@ -91,7 +91,23 @@ export function WalletInfo() {
       <div className="wallet-actions">
         <button
           className="btn-secondary"
-          onClick={() => window.open(`https://sepolia.basescan.org/address/${address}`, '_blank')}
+          onClick={() => {
+            const getExplorerUrl = (chainId?: number) => {
+              switch (chainId) {
+                case 8453: // Base mainnet
+                  return `https://basescan.org/address/${address}`
+                case 84532: // Base Sepolia testnet
+                  return `https://sepolia.basescan.org/address/${address}`
+                case 1: // Ethereum mainnet
+                  return `https://etherscan.io/address/${address}`
+                case 11155111: // Ethereum Sepolia testnet
+                  return `https://sepolia.etherscan.io/address/${address}`
+                default:
+                  return `https://basescan.org/address/${address}` // fallback to Base
+              }
+            }
+            window.open(getExplorerUrl(chain?.id), '_blank')
+          }}
         >
           View on Explorer
         </button>

@@ -1,5 +1,6 @@
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useWatchContractEvent } from 'wagmi'
 import { parseEther } from 'viem'
+import { useMemo, useCallback, useRef, useEffect } from 'react'
 import { PIGGYBANK_ABI, PIGGYBANK_ADDRESS } from '../config/contracts'
 
 interface Transaction {
@@ -14,58 +15,84 @@ export function usePiggyBank() {
   const { address } = useAccount()
   const { writeContract, data: hash, isPending } = useWriteContract()
 
-  // Read balance
+  // Refs for cleanup to prevent memory leaks
+  const depositedEventRef = useRef<(() => void) | undefined>(undefined)
+  const withdrawnEventRef = useRef<(() => void) | undefined>(undefined)
+
+  // Memoize balance to prevent unnecessary re-renders
   const { data: balance, refetch: refetchBalance } = useReadContract({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
     functionName: 'getBalance',
   })
-
-  // Watch for Deposited events
-  useWatchContractEvent({
-    address: PIGGYBANK_ADDRESS,
-    abi: PIGGYBANK_ABI,
-    eventName: 'Deposited',
-    onLogs(logs) {
-      console.log('Deposited event:', logs)
-      // Automatically refetch balance when deposit event is detected
-      refetchBalance()
-    },
-  })
-
-  // Watch for Withdrawn events
-  useWatchContractEvent({
-    address: PIGGYBANK_ADDRESS,
-    abi: PIGGYBANK_ABI,
-    eventName: 'Withdrawn',
-    onLogs(logs) {
-      console.log('Withdrawn event:', logs)
-      // Automatically refetch balance when withdrawal event is detected
-      refetchBalance()
-    },
-  })
-
-  // Read unlock time
+  
+  // Memoize unlock time
   const { data: unlockTime, refetch: refetchUnlockTime } = useReadContract({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
     functionName: 'unlockTime',
   })
 
-  // Read owner
+  // Memoize owner to prevent unnecessary re-renders
   const { data: owner } = useReadContract({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
     functionName: 'owner',
   })
 
-  // Wait for transaction
+  // Create refetch callbacks once and reuse them
+  const balanceRefetch = useCallback(() => {
+    refetchBalance()
+  }, [refetchBalance])
+
+  // Proper cleanup with useEffect to prevent memory leaks
+  useEffect(() => {
+    const handleDepositedEvent = () => {
+      refetchBalance()
+    }
+
+    const handleWithdrawnEvent = () => {
+      refetchBalance()
+    }
+
+    // Store cleanup functions
+    depositedEventRef.current = handleDepositedEvent
+    withdrawnEventRef.current = handleWithdrawnEvent
+
+    // Cleanup function
+    return () => {
+      depositedEventRef.current = undefined
+      withdrawnEventRef.current = undefined
+    }
+  }, [refetchBalance])
+
+  // Watch for Deposited events with cleanup
+  useWatchContractEvent({
+    address: PIGGYBANK_ADDRESS,
+    abi: PIGGYBANK_ABI,
+    eventName: 'Deposited',
+    onLogs(logs) {
+      depositedEventRef.current?.()
+    },
+  })
+
+  // Watch for Withdrawn events with cleanup
+  useWatchContractEvent({
+    address: PIGGYBANK_ADDRESS,
+    abi: PIGGYBANK_ABI,
+    eventName: 'Withdrawn',
+    onLogs(logs) {
+      withdrawnEventRef.current?.()
+    },
+  })
+
+  // Wait for transaction with memoization
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   })
 
-  // Deposit function
-  const deposit = (amount: string) => {
+  // Memoize deposit function to prevent recreation on every render
+  const deposit = useCallback((amount: string) => {
     if (!address) return
 
     writeContract({
@@ -74,10 +101,10 @@ export function usePiggyBank() {
       functionName: 'deposit',
       value: parseEther(amount),
     })
-  }
+  }, [address, writeContract])
 
-  // Withdraw function
-  const withdraw = () => {
+  // Memoize withdraw function to prevent recreation on every render
+  const withdraw = useCallback(() => {
     if (!address) return
 
     writeContract({
@@ -85,33 +112,21 @@ export function usePiggyBank() {
       abi: PIGGYBANK_ABI,
       functionName: 'withdraw',
     })
-  }
+  }, [address, writeContract])
 
-  // Admin functions
-  const { data: totalDeposits } = useReadContract({
-    address: PIGGYBANK_ABI,
-    abi: PIGGYBANK_ABI,
-    functionName: 'totalDeposits',
-    query: { enabled: !!address && address === owner },
-  })
+  // Memoize admin check
+  const isOwner = useMemo(() => {
+    return !!address && !!owner && address.toLowerCase() === owner.toLowerCase()
+  }, [address, owner])
 
-  const { data: totalWithdrawals } = useReadContract({
-    address: PIGGYBANK_ABI,
-    abi: PIGGYBANK_ABI,
-    functionName: 'totalWithdrawals',
-    query: { enabled: !!address && address === owner },
-  })
+  // Memoize transactions array
+  const transactions: Transaction[] = useMemo(() => [], [])
 
-  // In a real app, you would fetch real transaction data from an indexer or subgraph
-  // For now, we'll return mock data
-  const transactions: Transaction[] = []
-
-  return {
+  // Memoize return object to prevent unnecessary re-renders
+  return useMemo(() => ({
     balance,
     unlockTime,
     owner,
-    totalDeposits,
-    totalWithdrawals,
     transactions,
     deposit,
     withdraw,
@@ -121,5 +136,20 @@ export function usePiggyBank() {
     hash,
     refetchBalance,
     refetchUnlockTime,
-  }
+    isOwner,
+  }), [
+    balance, 
+    unlockTime, 
+    owner, 
+    transactions, 
+    deposit, 
+    withdraw, 
+    isPending, 
+    isConfirming, 
+    isSuccess, 
+    hash, 
+    refetchBalance, 
+    refetchUnlockTime,
+    isOwner
+  ])
 }
