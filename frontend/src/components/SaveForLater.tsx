@@ -49,7 +49,12 @@ export function SaveForLater({ savedStates, onLoadState, onDeleteState }: SaveFo
             <div className="saved-state-details">
               <div>
                 <span>Amount:</span>
-                <span>{parseFloat(state.amount).toFixed(4)} ETH</span>
+                <span>
+                  {(() => {
+                    const numAmount = parseFloat(state.amount);
+                    return isNaN(numAmount) ? 'Invalid amount' : `${numAmount.toFixed(4)} ETH`;
+                  })()}
+                </span>
               </div>
               <div>
                 <span>Unlocks in:</span>
