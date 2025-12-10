@@ -28,8 +28,8 @@ Consistent UI text for the Ajo PiggyBank dApp. Keep tone concise, friendly, and 
 
 ## Toasts and transaction states
 - Pending tx: "Transaction submitted"
-- Success tx: "Transaction confirmed" (if you add success handling)
-- Error tx: "Transaction failed" (if you add error handling)
+- Success tx: "Transaction confirmed"
+- Error tx: "Transaction failed"
 - Explorer link: "View on Explorer →"
 
 ## Warnings and errors
