@@ -7,6 +7,7 @@ interface PerformanceMonitorOptions {
   trackMount?: boolean;
   trackUnmount?: boolean;
   track?: boolean;
+  trackProps?: boolean;
   trackState?: boolean;
   thresholds?: {
     render?: number;
