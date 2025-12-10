@@ -82,7 +82,7 @@ export function markPerformanceStart(name: string, category: PerformanceMetric['
 /**
  * Records a performance metric with enhanced metadata
  */
-function recordAdvancedMetric(metric: PerformanceMetric) {
+export function recordAdvancedMetric(metric: PerformanceMetric) {
   performanceMetrics.push(metric)
   
   // Keep only the most recent metrics to prevent memory issues
