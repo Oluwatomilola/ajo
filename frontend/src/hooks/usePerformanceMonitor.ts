@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { markPerformanceStart, getPerformanceMetrics } from '../utils/performance';
+import { markPerformanceStart, getPerformanceMetrics, recordAdvancedMetric } from '../utils/performance';
 
 interface PerformanceMonitorOptions {
   componentName: string;
@@ -67,9 +67,13 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions) {
    * Records a performance measurement with automatic categorization
    */
   const recordMeasurement = useCallback((operation: string, duration: number, category: string = 'interaction') => {
-    // Use the existing markPerformanceStart function
-    const endMeasurement = markPerformanceStart(`${componentName}_${operation}`);
-    endMeasurement();
+    // Record the measurement with the provided duration
+    recordAdvancedMetric({
+      name: `${componentName}_${operation}`,
+      value: duration,
+      timestamp: Date.now(),
+      category: category as any
+    });
   }, [componentName]);
 
   /**
