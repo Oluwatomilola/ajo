@@ -658,9 +658,9 @@ This repository includes a GitHub Actions workflow at `.github/workflows/ci.yml`
 
 Configure these repository secrets if you enable the deploy job (usually in your contracts repository):
 
-- `PRIVATE_KEY`: Deployer private key (use a test key; never commit).
-- `RPC_URL`: Network RPC endpoint (e.g., Base Sepolia).
-- `EXPLORER_API_KEY`: Block explorer API key (optional, for verification if added).
+- `PRIVATE_KEY`: Deployer private key (use a test key; never commit)
+- `RPC_URL`: Network RPC endpoint (e.g., Base Sepolia)
+- `EXPLORER_API_KEY`: Block explorer API key (optional, for verification if added)
 
 Note: This repo hosts the frontend. Contract deployment/verification typically lives in the contracts repository where your Foundry project resides.
 
