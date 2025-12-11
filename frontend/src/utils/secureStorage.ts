@@ -19,6 +19,8 @@ function sanitizeInput(input: string): string {
         '<': '<',
         '>': '>',
         '"': '"',
+        "'": '&#39;',
+        '&': '&',
         "'": ''',
         '&': '&',
       };
