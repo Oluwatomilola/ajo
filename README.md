@@ -4,17 +4,39 @@ Ajo PiggyBank is a decentralized savings application that allows users to deposi
 
 ---
 
+💡 **Key Features:**
+- **Time-locked savings** with enforced lock periods
+- **Wallet integration** via REOWN AppKit and WalletConnect v2
+- **Real-time balance tracking** with countdown timers
+- **Multi-network support** (Local, Base Sepolia, Base Mainnet)
+- **Comprehensive diagnostics** for development and troubleshooting
+
+## 📖 Table of Contents
+
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Frontend – Getting Started](#frontend--getting-started)
+- [Contract Configuration Guide](#🔧-contract-configuration-guide)
+- [Smart Contract (Conceptual Overview)](#smart-contract-conceptual-overview)
+- [Testing and Quality](#testing-and-quality)
+- [Development Diagnostics](#🔧-development-diagnostics)
+- [Deployment](#deployment)
+- [CI/CD](#cicd)
+- [Security and Disclaimer](#security-and-disclaimer)
+- [License](#license)
+
 ## Overview
 
 The Ajo PiggyBank dApp is built to encourage disciplined savings by enforcing time-locked deposits on-chain.
 
 Key capabilities:
 
-- Connect an Ethereum wallet using **REOWN AppKit** with **WalletConnect v2**.
-- Deposit ETH into a personal piggy bank contract.
-- Configure time-locked savings with enforced lock periods.
-- View real-time balance, lock status, and countdown timer.
-- Withdraw funds only after the configured unlock time has passed.
+- Connect an Ethereum wallet using **REOWN AppKit** with **WalletConnect v2**
+- Deposit ETH into a personal piggy bank contract
+- Configure time-locked savings with enforced lock periods
+- View real-time balance, lock status, and countdown timer
+- Withdraw funds only after the configured unlock time has passed
 
 > **Scope of this repository:** only the frontend lives here (in `frontend/`). The `PiggyBank` smart contract itself should be managed in a dedicated Solidity/Foundry repository and deployed separately to Base testnet or mainnet.
 
@@ -49,7 +71,7 @@ Key capabilities:
 
 Use this if you want to run both the contracts (in your own Foundry repo) and the frontend locally:
 
-1. Contracts (in your contracts repo):
+1. **Contracts (in your contracts repo):**
 
    ```bash
    forge install
@@ -58,7 +80,7 @@ Use this if you want to run both the contracts (in your own Foundry repo) and th
    # deploy and copy the deployed PiggyBank address
    ```
 
-2. Frontend (in this repo):
+2. **Frontend (in this repo):**
 
    ```bash
    cd frontend
@@ -658,9 +680,9 @@ This repository includes a GitHub Actions workflow at `.github/workflows/ci.yml`
 
 Configure these repository secrets if you enable the deploy job (usually in your contracts repository):
 
-- `PRIVATE_KEY`: Deployer private key (use a test key; never commit).
-- `RPC_URL`: Network RPC endpoint (e.g., Base Sepolia).
-- `EXPLORER_API_KEY`: Block explorer API key (optional, for verification if added).
+- `PRIVATE_KEY`: Deployer private key (use a test key; never commit)
+- `RPC_URL`: Network RPC endpoint (e.g., Base Sepolia)
+- `EXPLORER_API_KEY`: Block explorer API key (optional, for verification if added)
 
 Note: This repo hosts the frontend. Contract deployment/verification typically lives in the contracts repository where your Foundry project resides.
 
