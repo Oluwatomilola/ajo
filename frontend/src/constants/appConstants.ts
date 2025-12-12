@@ -1,0 +1,118 @@
+/**
+ * Application-wide constants to eliminate magic numbers and improve maintainability
+ */
+
+// Validation constants
+export const VALIDATION = {
+  MAX_INPUT_LENGTH: 1000,
+  MAX_NAME_LENGTH: 100,
+  MAX_ETH_AMOUNT: 1000000,
+  MAX_DECIMAL_PLACES: 18,
+  ETH_ADDRESS_LENGTH: 40,
+  TRANSACTION_HASH_LENGTH: 64,
+  MIN_TIMESTAMP: Date.UTC(2020, 0, 1) / 1000,
+  MAX_TIMESTAMP: Date.UTC(2100, 0, 1) / 1000,
+  MIN_PROJECT_ID_LENGTH: 32,
+  CONTRACT_ADDRESS_LENGTH: 42,
+  MAX_EMAIL_LENGTH: 254,
+  MAX_URL_LENGTH: 2048,
+  MAX_STORAGE_KEY_LENGTH: 50,
+  MAX_ARRAY_SIZE: 100,
+  MAX_ERROR_HISTORY: 50,
+  MAX_WALLET_HISTORY: 5,
+  MAX_ERROR_DISPLAY: 10,
+  MAX_PERFORMANCE_METRICS: 1000,
+  MAX_PERFORMANCE_ALERTS: 100,
+  SLOW_OPERATION_THRESHOLD: 100, // ms
+  MEMORY_LEAK_THRESHOLD: 80, // percentage
+  HIGH_CPU_THRESHOLD: 70, // percentage
+  NETWORK_TIMEOUT_THRESHOLD: 5000, // ms
+  BENCHMARK_SAMPLE_SIZE: 100,
+  RENDER_THRESHOLD: 16, // ms for 60fps
+  MOUNT_THRESHOLD: 100, // ms
+  PROP_CHANGE_THRESHOLD: 50,
+  STATE_CHANGE_THRESHOLD: 10,
+  SLOW_RENDER_THRESHOLD: 32, // ms (2x frame budget)
+  HIGH_RENDER_RATIO: 0.1, // 10%
+  CONFIDENCE_SAMPLE_SIZE: 30,
+  PULL_TO_REFRESH_THRESHOLD: 80, // px
+  PULL_TO_REFRESH_PREVENT_SCROLL: 10, // px
+  KEYBOARD_HEIGHT_THRESHOLD: 150, // px
+  MOBILE_BREAKPOINT: 768, // px
+  TABLET_BREAKPOINT: 1024, // px
+  CSRF_TOKEN_LENGTH: 32, // bytes
+  SECURE_ID_DEFAULT_LENGTH: 16,
+  RATE_LIMIT_DEFAULT_ATTEMPTS: 5,
+  RATE_LIMIT_DEFAULT_WINDOW: 60000, // ms
+  PERFORMANCE_SCORE_PENALTY: 5,
+  NETWORK_ALERT_PENALTY: 10,
+  CRITICAL_ALERT_THRESHOLD: 15,
+  MEDIUM_ALERT_THRESHOLD: 8,
+  PERFORMANCE_REGRESSION_THRESHOLD: 1.2, // 20% increase
+  PERFORMANCE_TIME_RANGES: [
+    { label: 'Last 1 hour', duration: 60 * 60 * 1000 },
+    { label: 'Last 6 hours', duration: 6 * 60 * 60 * 1000 },
+    { label: 'Last 24 hours', duration: 24 * 60 * 60 * 1000 }
+  ]
+};
+
+// Time constants
+export const TIME = {
+  SECONDS_PER_MINUTE: 60,
+  SECONDS_PER_HOUR: 3600,
+  SECONDS_PER_DAY: 86400,
+  MILLISECONDS_PER_SECOND: 1000,
+  DEBOUNCE_DELAY: 1000, // ms
+  REFRESH_INTERVAL: 1000, // ms
+  THIRTY_DAYS_IN_MS: 30 * 24 * 60 * 60 * 1000,
+  ONE_YEAR_IN_SECONDS: 365 * 24 * 60 * 60,
+  PERFORMANCE_ANALYSIS_WINDOW: 5 * 60 * 1000, // 5 minutes
+  PERFORMANCE_BASELINE_WINDOW: 15 * 60 * 1000, // 15 minutes
+  VERY_SLOW_RENDER_THRESHOLD: 50, // ms
+  SLOW_NETWORK_THRESHOLD: 5000, // ms
+  HIGH_MEMORY_THRESHOLD: 80, // percentage
+  CRITICAL_MEMORY_THRESHOLD: 90, // percentage
+  MEMORY_UNIT_CONVERSION: 1024 * 1024 // bytes to MB
+};
+
+// Network and contract constants
+export const NETWORK = {
+  BASE_SEPOLIA_CHAIN_ID: 84532,
+  BASE_MAINNET_CHAIN_ID: 8453,
+  DEFAULT_PORT: 3000,
+  CHUNK_SIZE_WARNING_LIMIT: 1000,
+  CI_RETRIES: 2,
+  CI_WORKERS: 1,
+  DEV_SERVER_PORT: 5173
+};
+
+// Regex patterns
+export const REGEX_PATTERNS = {
+  ETH_ADDRESS: /^0x[a-fA-F0-9]{40}$/,
+  TRANSACTION_HASH: /^0x[a-fA-F0-9]{64}$/,
+  ETH_AMOUNT: /^\d*\.?\d*$/,
+  NUMBER: /^\d+$/,
+  EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  PASSWORD_STRONG: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+  STORAGE_KEY: /^[a-zA-Z0-9._-]+$/,
+  HEX_ADDRESS: /^0x[0-9a-fA-F]{0,64}$|^[0-9]*\.?[0-9]*$/
+};
+
+// Default values
+export const DEFAULTS = {
+  APP_VERSION: '0.0.0',
+  CONFIDENCE_LEVEL: 0.95,
+  PERCENTILE_95: 0.95,
+  PERCENTILE_99: 0.99,
+  RATE_LIMIT_RESET_BUFFER: 1,
+  ERROR_HISTORY_INITIAL_SIZE: 0,
+  PERFORMANCE_STATS_INITIAL: {
+    renderCount: 0,
+    averageRenderTime: 0,
+    totalRenderTime: 0,
+    lastRenderTime: 0,
+    slowRenders: 0,
+    propChanges: 0,
+    stateChanges: 0
+  }
+};

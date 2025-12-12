@@ -122,7 +122,7 @@ describe('validateEnvironment', () => {
       expect(result.warnings[0]).toContain('This will be an error in CI/production builds')
     })
 
-    it('should return error when contract address doesn't start with 0x', () => {
+    it('should return error when contract address does not start with 0x', () => {
       mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '1234567890123456789012345678901234567890'
       
