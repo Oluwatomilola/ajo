@@ -1,5 +1,7 @@
 // PiggyBank Smart Contract Configuration
 
+import { NETWORK } from '../constants/appConstants';
+
 export const PIGGYBANK_ABI = [
   {
     inputs: [{ internalType: 'uint256', name: '_unlockTime', type: 'uint256' }],
@@ -50,13 +52,6 @@ export const PIGGYBANK_ABI = [
   },
   {
     inputs: [],
-    name: 'paused',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
     name: 'pause',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -96,17 +91,13 @@ export const PIGGYBANK_ABI = [
   },
   {
     anonymous: false,
-    inputs: [
-      { indexed: false, internalType: 'address', name: 'account', type: 'address' }
-    ],
+    inputs: [{ indexed: false, internalType: 'address', name: 'account', type: 'address' }],
     name: 'Paused',
     type: 'event'
   },
   {
     anonymous: false,
-    inputs: [
-      { indexed: false, internalType: 'address', name: 'account', type: 'address' }
-    ],
+    inputs: [{ indexed: false, internalType: 'address', name: 'account', type: 'address' }],
     name: 'Unpaused',
     type: 'event'
   },
@@ -125,4 +116,4 @@ export const PIGGYBANK_ABI = [
 export const PIGGYBANK_ADDRESS = (import.meta.env.VITE_PIGGYBANK_ADDRESS || '') as `0x${string}`
 
 // Network configuration
-export const CHAIN_ID = 84532 // Base Sepolia testnet
+export const CHAIN_ID = NETWORK.BASE_SEPOLIA_CHAIN_ID // Base Sepolia testnet
