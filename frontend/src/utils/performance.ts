@@ -3,6 +3,8 @@
  * Enhanced with comprehensive performance tracking, analysis, and optimization features
  */
 
+import { VALIDATION, PERFORMANCE_CONFIG } from '../constants/appConstants';
+
 interface PerformanceMetric {
   name: string
   value: number
@@ -50,17 +52,6 @@ const performanceAlerts: PerformanceAlert[] = []
 const benchmarks = new Map<string, PerformanceBenchmark>()
 const slowOperations = new Set<string>()
 const operationHistory = new Map<string, number[]>()
-
-// Configuration
-const PERFORMANCE_CONFIG = {
-  MAX_METRICS: 1000,
-  MAX_ALERTS: 100,
-  SLOW_OPERATION_THRESHOLD: 100, // ms
-  MEMORY_LEAK_THRESHOLD: 80, // percentage
-  HIGH_CPU_THRESHOLD: 70, // percentage
-  NETWORK_TIMEOUT_THRESHOLD: 5000, // ms
-  BENCHMARK_SAMPLE_SIZE: 100
-}
 
 /**
  * Enhanced performance measurement with automatic categorization and benchmarking
@@ -303,7 +294,7 @@ export function usePerformanceMonitor(componentName: string) {
     })
     
     // Auto-alert for very slow renders
-    if (renderTime > 50) {
+    if (renderTime > VALIDATION.VERY_SLOW_RENDER_THRESHOLD) {
       console.warn(`🐌 Very slow render in ${componentName}: ${renderTime.toFixed(2)}ms`)
     }
   }
@@ -394,14 +385,14 @@ export function getPerformanceSuggestions(): string[] {
   const renderMetrics = getPerformanceMetrics('render')
   const avgRenderTime = renderMetrics.reduce((sum, m) => sum + m.value, 0) / renderMetrics.length
   
-  if (avgRenderTime > 16) {
-    suggestions.push(`🐌 Average render time is ${avgRenderTime.toFixed(2)}ms (target: <16ms for 60fps). Consider React.memo, useMemo, or useCallback optimizations.`)
+  if (avgRenderTime > VALIDATION.RENDER_THRESHOLD) {
+    suggestions.push(`🐌 Average render time is ${avgRenderTime.toFixed(2)}ms (target: <${VALIDATION.RENDER_THRESHOLD}ms for 60fps). Consider React.memo, useMemo, or useCallback optimizations.`)
   }
-  
+
   // Check for components with consistently slow renders
   const slowComponents = new Set<string>()
   renderMetrics.forEach(metric => {
-    if (metric.value > 32) { // 2x frame budget
+    if (metric.value > VALIDATION.SLOW_RENDER_THRESHOLD) { // 2x frame budget
       const componentName = metric.name.split('_')[0]
       slowComponents.add(componentName)
     }
@@ -413,7 +404,7 @@ export function getPerformanceSuggestions(): string[] {
   
   // Check memory usage
   const memoryInfo = getMemoryUsage()
-  if (memoryInfo && memoryInfo.usagePercentage > 80) {
+  if (memoryInfo && memoryInfo.usagePercentage > VALIDATION.HIGH_MEMORY_THRESHOLD) {
     suggestions.push(`💾 High memory usage detected (${memoryInfo.usagePercentage.toFixed(1)}%). Consider implementing memory cleanup and reducing memory allocations.`)
   }
   
@@ -466,8 +457,8 @@ export function generatePerformanceReport(): string {
     : 0
   
   const memoryScore = memoryInfo ? Math.max(0, 100 - memoryInfo.usagePercentage) : 100
-  const renderScore = Math.max(0, 100 - (avgRenderTime - 16) * 5) // Penalty for slow renders
-  const networkScore = Math.max(0, 100 - (unresolvedAlerts.filter(a => a.type === 'slow_operation').length * 10))
+  const renderScore = Math.max(0, 100 - (avgRenderTime - VALIDATION.RENDER_THRESHOLD) * VALIDATION.PERFORMANCE_SCORE_PENALTY) // Penalty for slow renders
+  const networkScore = Math.max(0, 100 - (unresolvedAlerts.filter(a => a.type === 'slow_operation').length * VALIDATION.NETWORK_ALERT_PENALTY))
   const overallScore = (memoryScore + renderScore + networkScore) / 3
   
   const report = [
@@ -544,11 +535,7 @@ export function generatePerformanceReport(): string {
  */
 function analyzePerformanceTrends(): string[] {
   const now = Date.now()
-  const timeRanges = [
-    { label: 'Last 1 hour', duration: 60 * 60 * 1000 },
-    { label: 'Last 6 hours', duration: 6 * 60 * 60 * 1000 },
-    { label: 'Last 24 hours', duration: 24 * 60 * 60 * 1000 }
-  ]
+  const timeRanges = VALIDATION.PERFORMANCE_TIME_RANGES
   
   return timeRanges.map(range => {
     const metrics = getPerformanceMetrics(undefined, range.duration)
