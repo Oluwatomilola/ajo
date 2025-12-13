@@ -30,6 +30,7 @@ interface PerformanceStats {
 }
 
 const performanceStatsMap = new Map<string, PerformanceStats>();
+const MAX_COMPONENTS = 100; // Maximum number of components to track
 
 /**
  * Enhanced React hook for comprehensive performance monitoring
@@ -48,20 +49,40 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions) {
   const startTimeRef = useRef<number>(0);
   const prevPropsRef = useRef<any>(null);
   const prevStateRef = useRef<any>(null);
-  const statsRef = useRef<PerformanceStats>({
-    renderCount: 0,
-    averageRenderTime: 0,
-    totalRenderTime: 0,
-    lastRenderTime: 0,
-    slowRenders: 0,
-    propChanges: 0,
-    stateChanges: 0
-  });
+  const isInitializedRef = useRef<boolean>(false);
 
   // Initialize performance stats for this component
-  if (!performanceStatsMap.has(componentName)) {
-    performanceStatsMap.set(componentName, { ...statsRef.current });
-  }
+  useEffect(() => {
+    if (!performanceStatsMap.has(componentName)) {
+      // Implement size limit to prevent memory leaks
+      if (performanceStatsMap.size >= MAX_COMPONENTS) {
+        // Remove oldest entry (first key)
+        const firstKey = performanceStatsMap.keys().next().value;
+        if (firstKey) {
+          performanceStatsMap.delete(firstKey);
+        }
+      }
+      
+      performanceStatsMap.set(componentName, {
+        renderCount: 0,
+        averageRenderTime: 0,
+        totalRenderTime: 0,
+        lastRenderTime: 0,
+        slowRenders: 0,
+        propChanges: 0,
+        stateChanges: 0
+      });
+    }
+    
+    isInitializedRef.current = true;
+
+    // Cleanup when component unmounts
+    return () => {
+      if (trackUnmount) {
+        performanceStatsMap.delete(componentName);
+      }
+    };
+  }, [componentName, trackUnmount]);
 
   /**
    * Records a performance measurement with automatic categorization
@@ -230,7 +251,7 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions) {
         recordMeasurement('unmount', performance.now() - unmountStart, 'interaction');
       }
     };
-  }, [trackMountPerformance, trackUnmount, recordMeasurement]);
+  }, [trackMountPerformance, trackUnmount, recordMeasurement, componentName, thresholds]);
 
   return {
     trackRenderPerformance,
@@ -259,6 +280,15 @@ export function getAllPerformanceStats(): Record<string, PerformanceStats> {
  */
 export function clearAllPerformanceStats(): void {
   performanceStatsMap.clear();
+}
+
+/**
+ * Cleanup function to prevent memory leaks
+ * Should be called when the application is shutting down
+ */
+export function cleanupPerformanceMonitoring(): void {
+  performanceStatsMap.clear();
+  // Clear any other global references if needed
 }
 
 /**
