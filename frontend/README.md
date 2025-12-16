@@ -197,6 +197,25 @@ This project includes comprehensive test coverage for all lock/unlock and countd
 - **BalanceCard Component** (15 tests): Lock/unlock states, countdown rendering
 - **WithdrawButton Component** (20 tests): Button states, balance validation
 - **DepositForm Component** (27 tests): Form validation, lock info formatting
+- **TransactionToast Component**: Transaction feedback consistency tests
+
+### Transaction Feedback Consistency
+
+The **TransactionToast** component ensures consistent user feedback for all transaction states:
+
+| State | Toast Message | Behavior |
+|-------|---------------|----------|
+| **Pending** | "Transaction submitted" | Always shown when transaction is sent |
+| **Success** | "Transaction confirmed" | Always shown when transaction succeeds |
+| **Error** | "Transaction failed" | Always shown when transaction fails |
+
+This guarantees users always receive clear, unambiguous feedback about their transaction status, eliminating the inconsistency mentioned in issue #26.
+
+All transaction states include:
+- Clear status message
+- Transaction explorer link (when available)
+- Appropriate visual indicators (⏳/✅/❌)
+- Auto-dismissal after appropriate delays
 
 ### Running Tests
 \`\`\`bash

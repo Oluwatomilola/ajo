@@ -1,5 +1,7 @@
 // PiggyBank Smart Contract Configuration
 
+import { NETWORK } from '../constants/appConstants';
+
 export const PIGGYBANK_ABI = [
   {
     inputs: [{ internalType: 'uint256', name: '_unlockTime', type: 'uint256' }],
@@ -42,6 +44,34 @@ export const PIGGYBANK_ABI = [
     type: 'function'
   },
   {
+    inputs: [],
+    name: 'isUnlocked',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'pause',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'unpause',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'newOwner', type: 'address' }],
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function'
+  },
+  {
     anonymous: false,
     inputs: [
       { indexed: true, internalType: 'address', name: 'from', type: 'address' },
@@ -58,6 +88,27 @@ export const PIGGYBANK_ABI = [
     ],
     name: 'Withdrawn',
     type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'address', name: 'account', type: 'address' }],
+    name: 'Paused',
+    type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'address', name: 'account', type: 'address' }],
+    name: 'Unpaused',
+    type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'previousOwner', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' }
+    ],
+    name: 'OwnershipTransferred',
+    type: 'event'
   }
 ] as const
 
@@ -65,4 +116,4 @@ export const PIGGYBANK_ABI = [
 export const PIGGYBANK_ADDRESS = (import.meta.env.VITE_PIGGYBANK_ADDRESS || '') as `0x${string}`
 
 // Network configuration
-export const CHAIN_ID = 84532 // Base Sepolia testnet
+export const CHAIN_ID = NETWORK.BASE_SEPOLIA_CHAIN_ID // Base Sepolia testnet

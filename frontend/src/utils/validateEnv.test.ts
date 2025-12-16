@@ -1,64 +1,86 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { validateEnvironment, getEnvironmentInfo } from './validateEnv'
 
-// Mock import.meta.env
+// Mock import.meta.env with more comprehensive structure
 const mockImportMeta = {
   env: {
     VITE_REOWN_PROJECT_ID: '',
     VITE_PIGGYBANK_ADDRESS: '',
+    VITE_BUILD_TIMESTAMP: new Date().toISOString(),
+    VITE_APP_VERSION: '1.0.0',
     PROD: false,
     DEV: true,
     MODE: 'development'
   }
 }
 
-// Mock process.env
-const originalProcessEnv = process.env
+// Mock process.env with more realistic values
+const originalProcessEnv = { ...process.env }
 
-// Setup mocks before each test
+// Enhanced mock console with call tracking
+const mockConsole = {
+  error: vi.fn(),
+  warn: vi.fn(),
+  log: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn()
+}
+
+// Setup enhanced mocks before each test
 beforeEach(() => {
-  // Reset mocks
+  // Reset all mocks
   vi.clearAllMocks()
-  
-  // Mock console methods to avoid spam in test output
-  vi.spyOn(console, 'error').mockImplementation(() => {})
-  vi.spyOn(console, 'warn').mockImplementation(() => {})
-  vi.spyOn(console, 'log').mockImplementation(() => {})
-  
-  // Mock import.meta.env
+
+  // Enhanced console mocking with call tracking
+  vi.spyOn(console, 'error').mockImplementation(mockConsole.error)
+  vi.spyOn(console, 'warn').mockImplementation(mockConsole.warn)
+  vi.spyOn(console, 'log').mockImplementation(mockConsole.log)
+  vi.spyOn(console, 'info').mockImplementation(mockConsole.info)
+  vi.spyOn(console, 'debug').mockImplementation(mockConsole.debug)
+
+  // Mock import.meta.env with comprehensive structure
   Object.defineProperty(globalThis, 'import.meta', {
     value: mockImportMeta,
     writable: true,
     configurable: true
   })
-  
-  // Mock process.env for CI environment variables
+
+  // Mock process.env for CI environment variables with more realistic setup
   Object.keys(originalProcessEnv).forEach(key => {
-    if (key.startsWith('CI') || key.includes('GITHUB') || key.includes('GITLAB') || 
+    if (key.startsWith('CI') || key.includes('GITHUB') || key.includes('GITLAB') ||
         key.includes('CIRCLE') || key.includes('TRAVIS') || key.includes('JENKINS')) {
-      delete originalProcessEnv[key]
+      delete process.env[key]
     }
   })
+
+  // Mock additional environment variables that might be used
+  process.env.NODE_ENV = 'development'
+  process.env.PUBLIC_URL = '/'
 })
 
 afterEach(() => {
   // Restore console methods
   vi.restoreAllMocks()
-  
+
   // Restore process.env
   Object.keys(process.env).forEach(key => {
-    if (key.startsWith('CI') || key.includes('GITHUB') || key.includes('GITLAB') || 
+    if (key.startsWith('CI') || key.includes('GITHUB') || key.includes('GITLAB') ||
         key.includes('CIRCLE') || key.includes('TRAVIS') || key.includes('JENKINS')) {
       delete process.env[key]
     }
   })
-  
-  // Reset import.meta.env
+
+  // Reset import.meta.env to default values
   mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
   mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+  mockImportMeta.env.VITE_BUILD_TIMESTAMP = new Date().toISOString()
+  mockImportMeta.env.VITE_APP_VERSION = '1.0.0'
   mockImportMeta.env.PROD = false
   mockImportMeta.env.DEV = true
   mockImportMeta.env.MODE = 'development'
+
+  // Restore original process.env
+  Object.assign(process.env, originalProcessEnv)
 })
 
 describe('validateEnvironment', () => {
@@ -122,7 +144,7 @@ describe('validateEnvironment', () => {
       expect(result.warnings[0]).toContain('This will be an error in CI/production builds')
     })
 
-    it('should return error when contract address doesn't start with 0x', () => {
+    it('should return error when contract address does not start with 0x', () => {
       mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '1234567890123456789012345678901234567890'
       
@@ -720,6 +742,142 @@ describe('validateEnvironment', () => {
       expect(result.warnings).toHaveLength(0)
       
       delete process.env.GITHUB_ACTIONS
+    })
+  })
+
+  describe('Additional Validation Scenarios', () => {
+    it('should handle project ID with exactly 32 characters (minimum valid length)', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(32)
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle project ID with exactly 31 characters (should warn)', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(31)
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(true)
+      expect(result.warnings).toContain('VITE_REOWN_PROJECT_ID seems too short. Verify it is correct.')
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should handle contract address with mixed case hex characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xAbCdEf1234567890123456789012345678901234'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle contract address with all uppercase hex after 0x', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xABCDEF1234567890123456789012345678901234'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle contract address with all lowercase hex after 0x', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0xabcdef1234567890123456789012345678901234'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+  })
+
+  describe('Performance and Edge Cases', () => {
+    it('should handle very long project ID (100 characters)', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'a'.repeat(100)
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle project ID with special characters', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = 'abc123-xyz_789.GHI+jkl='
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+      expect(result.warnings).toHaveLength(0)
+    })
+
+    it('should handle whitespace-only project ID', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '   '
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors.some(error => error.includes('VITE_REOWN_PROJECT_ID'))).toBe(true)
+    })
+
+    it('should handle contract address with leading/trailing whitespace', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '  0x1234567890123456789012345678901234567890  '
+
+      const result = validateEnvironment()
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors.some(error => error.includes('VITE_PIGGYBANK_ADDRESS must start with "0x"'))).toBe(true)
+    })
+  })
+
+  describe('Console Output Verification', () => {
+    it('should call console.error when errors exist', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+
+      const result = validateEnvironment()
+
+      expect(mockConsole.error).toHaveBeenCalled()
+      expect(mockConsole.warn).not.toHaveBeenCalled()
+      expect(mockConsole.log).not.toHaveBeenCalled()
+    })
+
+    it('should call console.warn when warnings exist', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
+
+      const result = validateEnvironment()
+
+      expect(mockConsole.error).not.toHaveBeenCalled()
+      expect(mockConsole.warn).toHaveBeenCalled()
+      expect(mockConsole.log).not.toHaveBeenCalled()
+    })
+
+    it('should call console.log when everything is valid', () => {
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+
+      const result = validateEnvironment()
+
+      expect(mockConsole.error).not.toHaveBeenCalled()
+      expect(mockConsole.warn).not.toHaveBeenCalled()
+      expect(mockConsole.log).toHaveBeenCalled()
     })
   })
 })

@@ -5,8 +5,8 @@ import { formatEther } from 'viem';
 import { BUTTONS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 
 export function WithdrawButton() {
-  const { balance, unlockTime, withdraw, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank()
-  const { isUnlocked } = useTimelock(unlockTime)
+  const { balance, unlockTime, withdraw, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank();
+  const { isUnlocked } = useTimelock(unlockTime);
 
   useEffect(() => {
     if (isSuccess) {
@@ -38,7 +38,6 @@ export function WithdrawButton() {
           </div>
         ) : (
           <div className="success-box">
-            {isSuccess && <span className="ml-2">✅ Withdrawn!</span>}
             <p>
               {MESSAGES.UNLOCKED}
             </p>
@@ -53,7 +52,11 @@ export function WithdrawButton() {
           disabled={!isUnlocked || !balance || isPending || isConfirming}
           title={balance ? `Withdraw ${formatEther(balance)} ETH` : 'No funds to withdraw'}
         >
-          {isPending || isConfirming ? 'Withdrawing...' : BUTTONS.WITHDRAW_ALL}
+          {isPending
+            ? 'Waiting for approval...'
+            : isConfirming
+            ? 'Withdrawing...'
+            : `Withdraw All (${balance ? formatEther(balance) : '0'} ETH)`}
         </button>
         {balance && balance > 0 && (
           <p className="withdraw-note">
@@ -62,11 +65,6 @@ export function WithdrawButton() {
         )}
       </div>
 
-      {isSuccess && (
-        <div className="success-message">
-          ✅ Withdrawal successful! Check your wallet.
-        </div>
-      )}
     </div>
   )
 }
