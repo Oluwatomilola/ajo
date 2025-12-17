@@ -70,6 +70,8 @@ export function usePiggyBank() {
     abi: PIGGYBANK_ABI,
     eventName: 'Deposited',
     onLogs(logs) {
+      // Automatically refetch balance when deposit event is detected
+      refetchBalance()
       // Only refetch if the event is from our connected address
       if (isConnected && address && logs.some(log => 
         log.args && typeof log.args === 'object' && log.args !== null && 
@@ -88,6 +90,8 @@ export function usePiggyBank() {
     abi: PIGGYBANK_ABI,
     eventName: 'Withdrawn',
     onLogs(logs) {
+      // Automatically refetch balance when withdrawal event is detected
+      refetchBalance()
       // Only refetch if the event is from our connected address
       if (isConnected && address && logs.some(log => 
         log.args && typeof log.args === 'object' && log.args !== null && 
@@ -117,6 +121,8 @@ export function usePiggyBank() {
     })
   }, [address, writeContract])
 
+  // Withdraw function
+  const withdraw = (amount: string) => {
   // Memoize withdraw function to prevent recreation on every render
   const withdraw = useCallback(() => {
     if (!address) return
@@ -125,6 +131,18 @@ export function usePiggyBank() {
       address: PIGGYBANK_ADDRESS,
       abi: PIGGYBANK_ABI,
       functionName: 'withdraw',
+      args: [parseEther(amount)],
+    })
+  }
+
+  // Withdraw all function
+  const withdrawAll = () => {
+    if (!address) return
+
+    writeContract({
+      address: PIGGYBANK_ADDRESS,
+      abi: PIGGYBANK_ABI,
+      functionName: 'withdrawAll',
     })
   }
 
@@ -144,6 +162,9 @@ export function usePiggyBank() {
   })
   }, [address, writeContract])
 
+  // Note: Transaction history implementation would require integration with
+  // event indexers or subgraph queries for complete transaction tracking
+  const transactions: Transaction[] = []
   // Memoize admin check
   const isOwner = useMemo(() => {
     return !!address && !!owner && address.toLowerCase() === owner.toLowerCase()
@@ -160,6 +181,7 @@ export function usePiggyBank() {
     transactions,
     deposit,
     withdraw,
+    withdrawAll,
     isPending,
     isConfirming,
     isSuccess,
