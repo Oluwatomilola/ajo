@@ -136,6 +136,18 @@ export function DepositForm({ onAmountChange }: DepositFormProps) {
           ? 'Depositing...'
           : 'Deposit ETH'}
       </button>
+
+      {showError && (
+        <div className="error-message" style={{ color: 'red', marginTop: '10px' }}>
+          ❌ {showError}
+        </div>
+      )}
+
+      {isSuccess && (
+        <div className="success-message">
+          ✅ {MESSAGES.DEPOSIT_SUCCESS}
+        </div>
+      )}
     </form>
   );
 }

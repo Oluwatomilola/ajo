@@ -1,30 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePiggyBank } from '../hooks/usePiggyBank';
 import { useTimelock } from '../hooks/useTimelock';
 import { formatEther } from 'viem';
 import { BUTTONS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 
 export function WithdrawButton() {
-  const { balance, unlockTime, withdraw, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank();
-  const { isUnlocked } = useTimelock(unlockTime);
+  const { balance, unlockTime, withdraw, withdrawAll, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank()
+  const { isUnlocked } = useTimelock(unlockTime)
+  const [showError, setShowError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isSuccess) {
       refetchBalance()
+      setShowError(null)
     }
   }, [isSuccess, refetchBalance])
 
   const handleWithdraw = () => {
     if (!isUnlocked) {
-      alert(VALIDATION.LOCKED_FUNDS);
-      return;
+      setShowError(VALIDATION.LOCKED_FUNDS)
+      setTimeout(() => setShowError(null), 5000)
+      return
     }
     if (!balance || balance === BigInt(0)) {
-      alert(MESSAGES.NO_FUNDS);
-      return;
+      setShowError(MESSAGES.NO_FUNDS)
+      setTimeout(() => setShowError(null), 5000)
+      return
     }
-    withdraw();
-  };
+    withdrawAll()
+  }
 
   return (
     <div className="withdraw-section">
@@ -65,6 +69,17 @@ export function WithdrawButton() {
         )}
       </div>
 
+      {showError && (
+        <div className="error-message" style={{ color: 'red', marginTop: '10px' }}>
+          ❌ {showError}
+        </div>
+      )}
+
+      {isSuccess && (
+        <div className="success-message">
+          ✅ Withdrawal successful! Check your wallet.
+        </div>
+      )}
     </div>
   )
 }
