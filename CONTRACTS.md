@@ -2,11 +2,15 @@
 
 This document describes the expected PiggyBank contract interface used by the Ajo PiggyBank dApp. The contract itself should live in a separate Solidity/Foundry repository and be deployed to Base Sepolia or Base Mainnet.
 
+> **For comprehensive API documentation**, see [API_DOCUMENTATION.md](./docs/API_DOCUMENTATION.md)
+
 ## Overview
 
 - Enforces time-locked savings for a single owner.
 - Accepts ETH deposits during the lock period.
 - Allows owner to withdraw all funds after `unlockTime`.
+- Includes pause functionality for emergency situations.
+- Supports ownership transfer.
 
 ## Public interface
 
@@ -15,17 +19,22 @@ Functions (as used by the frontend ABI):
 - `constructor(uint256 _unlockTime) payable`
 
   - Initializes `owner` to `msg.sender` and sets the `unlockTime` timestamp (in seconds).
-  - Optionally accepts initial ETH.
+  - Optionally accepts initial ETH during deployment.
 
 - `function deposit() external payable`
 
-  - Accepts ETH deposits. Does not change the lock time.
+  - Accepts ETH deposits from anyone when contract is not paused.
+  - Requires deposit amount > 0.
+  - Emits `Deposited` event.
 
 - `function withdraw() external`
 
+  - Allows owner to withdraw all ETH after unlock time when contract is not paused.
   - Reverts if `block.timestamp < unlockTime`.
   - Reverts if `msg.sender != owner`.
+  - Reverts if contract is paused.
   - Transfers the entire contract balance to the owner.
+  - Emits `Withdrawn` event.
 
 - `function getBalance() external view returns (uint256)`
 
@@ -36,29 +45,68 @@ Functions (as used by the frontend ABI):
   - Returns the owner address.
 
 - `function unlockTime() external view returns (uint256)`
+
   - Returns the unlock timestamp (seconds since epoch).
+
+- `function isUnlocked() external view returns (bool)`
+
+  - Returns whether the current timestamp is >= unlockTime.
+
+- `function paused() external view returns (bool)`
+
+  - Returns whether the contract is currently paused.
+
+- `function pause() external`
+
+  - Pauses the contract, disabling deposits and withdrawals.
+  - Can only be called by the owner when contract is not already paused.
+  - Emits `Paused` event.
+
+- `function unpause() external`
+
+  - Unpauses the contract, re-enabling deposits and withdrawals.
+  - Can only be called by the owner when contract is paused.
+  - Emits `Unpaused` event.
+
+- `function transferOwnership(address newOwner) external`
+
+  - Transfers ownership to a new address.
+  - Can only be called by the current owner.
+  - Reverts if newOwner is the zero address.
+  - Emits `OwnershipTransferred` event.
 
 ## Events
 
-- The minimal ABI currently used by the frontend does not include events.
-  - You may optionally add:
-    - `event Deposited(address indexed from, uint256 amount);`
-    - `event Withdrawn(address indexed to, uint256 amount);`
+The contract emits the following events:
 
-Update the frontend ABI if you add events.
+- `event Deposited(address indexed depositor, uint256 amount)`
+  - Emitted when ETH is deposited into the contract
+
+- `event Withdrawn(address indexed withdrawer, uint256 amount)`
+  - Emitted when ETH is withdrawn from the contract
+
+- `event Paused(address account)`
+  - Emitted when the contract is paused
+
+- `event Unpaused(address account)`
+  - Emitted when the contract is unpaused
+
+- `event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)`
+  - Emitted when ownership is transferred
 
 ## Storage layout
 
 - `address public owner;`
 - `uint256 public unlockTime;`
-
-No other persistent storage is required by the frontend.
+- `bool public paused;`
 
 ## Preconditions and invariants
 
 - Only `owner` can withdraw.
 - `withdraw` must not succeed before `unlockTime`.
 - `deposit` must be payable and not modify ownership or unlock time.
+- Contract functions revert when called in paused state (except pause/unpause).
+- Ownership transfer requires non-zero new owner address.
 
 ## Testing checklist (contracts)
 
