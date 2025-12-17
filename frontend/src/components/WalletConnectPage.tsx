@@ -11,9 +11,10 @@ export function WalletConnectPage() {
   const [history, setHistory] = useState(getWalletHistory())
 
   useEffect(() => {
+    // Reduce polling frequency to improve performance
     const interval = setInterval(() => {
       setHistory(getWalletHistory())
-    }, 1000)
+    }, 30000) // Poll every 30 seconds instead of every second
 
     return () => clearInterval(interval)
   }, [])

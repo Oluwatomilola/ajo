@@ -27,7 +27,6 @@ export function usePiggyBank() {
     abi: PIGGYBANK_ABI,
     eventName: 'Deposited',
     onLogs(logs) {
-      console.log('Deposited event:', logs)
       // Automatically refetch balance when deposit event is detected
       refetchBalance()
     },
@@ -39,7 +38,6 @@ export function usePiggyBank() {
     abi: PIGGYBANK_ABI,
     eventName: 'Withdrawn',
     onLogs(logs) {
-      console.log('Withdrawn event:', logs)
       // Automatically refetch balance when withdrawal event is detected
       refetchBalance()
     },
@@ -77,13 +75,25 @@ export function usePiggyBank() {
   }
 
   // Withdraw function
-  const withdraw = () => {
+  const withdraw = (amount: string) => {
     if (!address) return
 
     writeContract({
       address: PIGGYBANK_ADDRESS,
       abi: PIGGYBANK_ABI,
       functionName: 'withdraw',
+      args: [parseEther(amount)],
+    })
+  }
+
+  // Withdraw all function
+  const withdrawAll = () => {
+    if (!address) return
+
+    writeContract({
+      address: PIGGYBANK_ADDRESS,
+      abi: PIGGYBANK_ABI,
+      functionName: 'withdrawAll',
     })
   }
 
@@ -102,8 +112,8 @@ export function usePiggyBank() {
     query: { enabled: !!address && address === owner },
   })
 
-  // In a real app, you would fetch real transaction data from an indexer or subgraph
-  // For now, we'll return mock data
+  // Note: Transaction history implementation would require integration with
+  // event indexers or subgraph queries for complete transaction tracking
   const transactions: Transaction[] = []
 
   return {
@@ -115,6 +125,7 @@ export function usePiggyBank() {
     transactions,
     deposit,
     withdraw,
+    withdrawAll,
     isPending,
     isConfirming,
     isSuccess,
