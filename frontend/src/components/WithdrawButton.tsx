@@ -42,7 +42,6 @@ export function WithdrawButton() {
           </div>
         ) : (
           <div className="success-box">
-            {isSuccess && <span className="ml-2">✅ Withdrawn!</span>}
             <p>
               {MESSAGES.UNLOCKED}
             </p>
@@ -57,7 +56,11 @@ export function WithdrawButton() {
           disabled={!isUnlocked || !balance || isPending || isConfirming}
           title={balance ? `Withdraw ${formatEther(balance)} ETH` : 'No funds to withdraw'}
         >
-          {isPending || isConfirming ? 'Withdrawing...' : BUTTONS.WITHDRAW_ALL}
+          {isPending
+            ? 'Waiting for approval...'
+            : isConfirming
+            ? 'Withdrawing...'
+            : `Withdraw All (${balance ? formatEther(balance) : '0'} ETH)`}
         </button>
         {balance && balance > 0 && (
           <p className="withdraw-note">

@@ -1,23 +1,53 @@
+import React, { useMemo } from 'react'
 import { formatEther } from 'viem'
 import { usePiggyBank } from '../hooks/usePiggyBank'
 import { useTimelock } from '../hooks/useTimelock'
+import { usePerformanceMonitor } from '../utils/performance'
 
-export function BalanceCard() {
+// Memoized formatting function to prevent recreation on every render
+const formatUnlockDate = (timestamp: bigint | undefined): string => {
+  if (!timestamp) return 'Not set'
+  const date = new Date(Number(timestamp) * 1000)
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+function BalanceCardComponent() {
+  const { endRender } = usePerformanceMonitor('BalanceCard')
   const { balance, unlockTime } = usePiggyBank()
   const { timeRemaining, isUnlocked } = useTimelock(unlockTime)
 
-  const formatUnlockDate = (timestamp: bigint | undefined) => {
-    if (!timestamp) return 'Not set'
-    const date = new Date(Number(timestamp) * 1000)
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
-  }
+  // Memoize formatted values to prevent unnecessary recalculations
+  const formattedBalance = useMemo(() => {
+    return balance ? formatEther(balance) : '0.00'
+  }, [balance])
+
+  const formattedUnlockDate = useMemo(() => {
+    return formatUnlockDate(unlockTime)
+  }, [unlockTime])
+
+  // Memoize time units to prevent re-rendering every second
+  const timeUnits = useMemo(() => {
+    if (!timeRemaining) return null
+    
+    return {
+      days: timeRemaining.days,
+      hours: timeRemaining.hours,
+      minutes: timeRemaining.minutes,
+      seconds: timeRemaining.seconds
+    }
+  }, [timeRemaining?.days, timeRemaining?.hours, timeRemaining?.minutes, timeRemaining?.seconds])
+
+  // Clean up render time measurement
+  useMemo(() => {
+    return endRender
+  }, [endRender])
 
   return (
     <div className="balance-card" role="region" aria-labelledby="balance-card-title">
@@ -39,7 +69,7 @@ export function BalanceCard() {
               </time>
             </p>
           </div>
-        ) : timeRemaining ? (
+        ) : timeUnits ? (
           <div className="locked">
             <span className="status-icon" role="img" aria-label="Locked">🔒</span>
             <p className="font-semibold mb-2">
@@ -75,3 +105,6 @@ export function BalanceCard() {
     </div>
   )
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const BalanceCard = BalanceCardComponent

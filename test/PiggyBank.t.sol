@@ -607,10 +607,130 @@ contract PiggyBankTest is Test {
         
         vm.prank(fixtureUser1);
         piggyBank.withdraw();
-        
         assertEq(piggyBank.getBalance(), 0);
     }
+
+    // ============================================
+    // VALIDATION TESTS
+    // ============================================
+
+    function testDeposit_Validation_ZeroAmount() public {
+        vm.prank(user1);
+        vm.expectRevert("Must deposit something");
+        piggyBank.deposit{value: 0}();
+    }
+
+    function testDeposit_Validation_MaxUint256() public {
+        uint256 maxValue = type(uint256).max;
+        vm.deal(user1, maxValue);
+
+        vm.prank(user1);
+        piggyBank.deposit{value: maxValue}();
+
+        assertEq(piggyBank.getBalance(), maxValue);
+    }
+
+    function testWithdraw_Validation_OnlyOwner() public {
+        // Setup - deposit funds
+        vm.prank(owner);
+        piggyBank.deposit{value: DEPOSIT_AMOUNT}();
+
+        // Fast forward time
+        vm.warp(block.timestamp + UNLOCK_TIME + 1);
+
+        // Try to withdraw as non-owner
+        vm.prank(user1);
+        vm.expectRevert("PiggyBank: Not owner");
+        piggyBank.withdraw();
+    }
+
+    function testWithdraw_Validation_TimeLock() public {
+        // Setup - deposit funds
+        vm.prank(owner);
+        piggyBank.deposit{value: DEPOSIT_AMOUNT}();
+
+        // Try to withdraw before unlock time
+        vm.prank(owner);
+        vm.expectRevert("PiggyBank: Still locked");
+        piggyBank.withdraw();
+    }
+
+    function testOwnership_Validation_ZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert("New owner is zero address");
+        piggyBank.transferOwnership(address(0));
+    }
+
+    function testOwnership_Validation_NonOwner() public {
+        vm.prank(user1);
+        vm.expectRevert("Not owner");
+        piggyBank.transferOwnership(user2);
+    }
+
+    function testPause_Validation_NonOwner() public {
+        vm.prank(user1);
+        vm.expectRevert("Not owner");
+        piggyBank.pause();
+    }
+
+    function testUnpause_Validation_NonOwner() public {
+        // Pause first
+        vm.prank(owner);
+        piggyBank.pause();
+
+        // Try to unpause as non-owner
+        vm.prank(user1);
+        vm.expectRevert("Not owner");
+        piggyBank.unpause();
+    }
+
+    function testPause_Validation_AlreadyPaused() public {
+        // Pause first time
+        vm.prank(owner);
+        piggyBank.pause();
+
+        // Try to pause again
+        vm.prank(owner);
+        vm.expectRevert("Contract is not paused");
+        piggyBank.pause();
+    }
+
+    function testUnpause_Validation_NotPaused() public {
+        vm.prank(owner);
+        vm.expectRevert("Contract is not paused");
+        piggyBank.unpause();
+    }
+
+    function testDeposit_Validation_PausedContract() public {
+        // Pause the contract
+        vm.prank(owner);
+        piggyBank.pause();
+
+        // Try to deposit when paused
+        vm.prank(user1);
+        vm.expectRevert("Contract is paused");
+        piggyBank.deposit{value: DEPOSIT_AMOUNT}();
+    }
+
+    function testWithdraw_Validation_PausedContract() public {
+        // Setup - deposit funds
+        vm.prank(owner);
+        piggyBank.deposit{value: DEPOSIT_AMOUNT}();
+
+        // Pause the contract
+        vm.prank(owner);
+        piggyBank.pause();
+
+        // Fast forward time
+        vm.warp(block.timestamp + UNLOCK_TIME + 1);
+
+        // Try to withdraw when paused
+        vm.prank(owner);
+        vm.expectRevert("Contract is paused");
+        piggyBank.withdraw();
+    }
 }
+
 
 // Reentrancy attacker contract for testing
 contract ReentrancyAttacker {

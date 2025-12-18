@@ -1,5 +1,7 @@
 // PiggyBank Smart Contract Configuration
 
+import { NETWORK } from '../constants/appConstants';
+
 export const PIGGYBANK_ABI = [
   {
     inputs: [{ internalType: 'uint256', name: '_unlockTime', type: 'uint256' }],
@@ -50,40 +52,8 @@ export const PIGGYBANK_ABI = [
   },
   {
     inputs: [],
-    name: 'totalDeposits',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'totalWithdrawals',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [{ internalType: 'address', name: 'user', type: 'address' }],
-    name: 'getUserDeposit',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
     name: 'isUnlocked',
     outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'getContractStats',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-      { internalType: 'uint256', name: '', type: 'uint256' },
-      { internalType: 'uint256', name: '', type: 'uint256' }
-    ],
     stateMutability: 'view',
     type: 'function'
   },
@@ -155,4 +125,4 @@ export const PIGGYBANK_ABI = [
 export const PIGGYBANK_ADDRESS = (import.meta.env.VITE_PIGGYBANK_ADDRESS || '') as `0x${string}`
 
 // Network configuration
-export const CHAIN_ID = 84532 // Base Sepolia testnet
+export const CHAIN_ID = NETWORK.BASE_SEPOLIA_CHAIN_ID // Base Sepolia testnet

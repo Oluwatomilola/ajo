@@ -14,6 +14,24 @@ import {
   ContractFunction,
   ContractEvent
 } from '../types/diagnostics'
+
+// Interface for ABI function/event items
+interface ABIItem {
+  type: string
+  name?: string
+  inputs?: Array<{
+    type: string
+    internalType?: string
+    name: string
+    indexed?: boolean
+  }>
+  outputs?: Array<{
+    type: string
+    internalType?: string
+    name: string
+  }>
+  stateMutability?: string
+}
 import { PIGGYBANK_ABI, PIGGYBANK_ADDRESS, CHAIN_ID } from '../config/contracts'
 import { wagmiAdapter } from '../config/wagmi'
 
@@ -124,21 +142,21 @@ export async function checkContractStatus(): Promise<ContractStatus> {
     
     // Analyze ABI functions and events
     const functions: ContractFunction[] = PIGGYBANK_ABI
-      .filter(item => item.type === 'function')
+      .filter((item): item is ABIItem => item.type === 'function')
       .map(fn => ({
-        name: (fn as any).name || 'unknown',
-        signature: `${(fn as any).name}(${(fn as any).inputs?.map((i: any) => i.type).join(',') || ''})`,
-        inputs: (fn as any).inputs?.map((i: any) => i.type) || [],
-        outputs: (fn as any).outputs?.map((o: any) => o.type) || [],
-        stateMutability: (fn as any).stateMutability || 'view'
+        name: fn.name || 'unknown',
+        signature: `${fn.name}(${fn.inputs?.map(i => i.type).join(',') || ''})`,
+        inputs: fn.inputs?.map(i => i.type) || [],
+        outputs: fn.outputs?.map(o => o.type) || [],
+        stateMutability: fn.stateMutability || 'view'
       }))
     
     const events: ContractEvent[] = PIGGYBANK_ABI
-      .filter(item => item.type === 'event')
+      .filter((item): item is ABIItem => item.type === 'event')
       .map(event => ({
-        name: (event as any).name || 'unknown',
-        signature: `${(event as any).name}(${(event as any).inputs?.map((i: any) => i.type).join(',') || ''})`,
-        inputs: (event as any).inputs?.map((input: any) => ({
+        name: event.name || 'unknown',
+        signature: `${event.name}(${event.inputs?.map(i => i.type).join(',') || ''})`,
+        inputs: event.inputs?.map(input => ({
           indexed: input.indexed || false,
           internalType: input.internalType,
           name: input.name,

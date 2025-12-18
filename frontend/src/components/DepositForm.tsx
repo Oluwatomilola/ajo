@@ -1,37 +1,81 @@
 import { useState, useEffect } from 'react';
 import { usePiggyBank } from '../hooks/usePiggyBank';
 import { useTimelock } from '../hooks/useTimelock';
+import { useMobile } from '../hooks/useMobile';
 import { BUTTONS, LABELS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 import { formatLockTime } from '../constants/uxCopy';
+import { useSecureAlert } from './SecureNotification';
+import { SecureInput } from './ui/SecureInput';
+import { validateEthAmount } from '../utils/security';
 
-export function DepositForm() {
-  const [amount, setAmount] = useState('')
-  const [showError, setShowError] = useState<string | null>(null)
-  const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank()
-  const { timeRemaining } = useTimelock(unlockTime)
+interface DepositFormProps {
+  onAmountChange?: (amount: string) => void;
+}
+
+export function DepositForm({ onAmountChange }: DepositFormProps) {
+  const [amount, setAmount] = useState('');
+  const { deposit, isPending, isConfirming, isSuccess, refetchBalance, unlockTime } = usePiggyBank();
+  const { timeRemaining } = useTimelock(unlockTime);
+  const { error: showError } = useSecureAlert();
+  const isMobile = useMobile();
+  const [secureAmount, setSecureAmount] = useState('');
+  const [amountValid, setAmountValid] = useState(false);
+  const [validationError, setValidationError] = useState('');
+
+  // Notify parent component of amount changes
+  useEffect(() => {
+    if (onAmountChange) {
+      onAmountChange(amount);
+    }
+  }, [amount, onAmountChange]);
 
   useEffect(() => {
     if (isSuccess) {
-      setAmount('')
-      setShowError(null)
-      refetchBalance()
+      setAmount('');
+      setSecureAmount('');
+      setAmountValid(false);
+      setValidationError('');
+      refetchBalance();
     }
-  }, [isSuccess, refetchBalance])
+  }, [isSuccess, refetchBalance]);
+
+  const handleAmountChange = (value: string, isValid: boolean) => {
+    setSecureAmount(value);
+    setAmountValid(isValid);
+    setValidationError('');
+
+    if (isValid && value) {
+      setAmount(value);
+    } else {
+      setAmount('');
+    }
+  };
 
   const handleDeposit = (e: React.FormEvent) => {
     e.preventDefault();
-    const numAmount = parseFloat(amount)
-    if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setShowError(VALIDATION.INVALID_AMOUNT)
-      setTimeout(() => setShowError(null), 5000)
+
+    if (!secureAmount || !amountValid) {
+      setValidationError('Please enter a valid amount');
+      showError('Invalid Amount', VALIDATION.INVALID_AMOUNT);
       return;
     }
-    if (numAmount > 100) {
-      setShowError('Amount exceeds maximum deposit limit of 100 ETH')
-      setTimeout(() => setShowError(null), 5000)
+
+    const numAmount = parseFloat(secureAmount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      setValidationError('Amount must be greater than 0');
+      showError('Invalid Amount', VALIDATION.INVALID_AMOUNT);
       return;
     }
-    deposit(amount);
+
+    // Additional security check - validate ETH amount using security utils
+    const ethValidation = validateEthAmount(secureAmount);
+    if (!ethValidation.isValid) {
+      setValidationError(ethValidation.errors.join(', '));
+      showError('Invalid Amount', 'Security validation failed');
+      return;
+    }
+
+    deposit(secureAmount);
   };
 
   const formatLockInfo = () => {
@@ -52,15 +96,19 @@ export function DepositForm() {
   return (
     <form className="deposit-form" onSubmit={handleDeposit}>
       <div className="form-group">
-        <label htmlFor="amount">{LABELS.AMOUNT_ETH}</label>
-        <input
+        <SecureInput
           id="amount"
-          type="number"
-          step="0.001"
-          min="0"
+          label={LABELS.AMOUNT_ETH}
+          type="text"
+          value={secureAmount}
+          onChange={handleAmountChange}
+          validationType="amount"
           placeholder={LABELS.AMOUNT_PLACEHOLDER}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          maxLength={20}
+          securityMode="strict"
+          showValidation={true}
+          error={validationError}
+          helperText="Enter the amount of ETH to deposit"
           disabled={isPending || isConfirming}
         />
       </div>
@@ -79,16 +127,14 @@ export function DepositForm() {
 
       <button
         type="submit"
-        className="btn btn-primary"
+        className={`btn btn-primary ${isMobile ? 'mobile-btn mobile-btn-primary' : ''}`}
         disabled={!amount || isPending || isConfirming}
       >
         {isPending
           ? 'Waiting for approval...'
           : isConfirming
-          ? 'Processing...'
-          : isSuccess
-          ? 'Deposited!'
-          : BUTTONS.DEPOSIT_ETH}
+          ? 'Depositing...'
+          : 'Deposit ETH'}
       </button>
 
       {showError && (
@@ -103,5 +149,5 @@ export function DepositForm() {
         </div>
       )}
     </form>
-  )
+  );
 }
