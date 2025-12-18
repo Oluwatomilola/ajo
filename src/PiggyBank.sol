@@ -12,6 +12,8 @@ contract PiggyBank {
     address public owner;
     uint256 public unlockTime;
     bool public paused;
+
+    // Multi-user deposit tracking
     uint256 public constant MAX_DEPOSIT_AMOUNT = 1000 ether; // Maximum deposit per user
     uint256 public constant MIN_DEPOSIT_AMOUNT = 0.001 ether; // Minimum deposit per user
     uint256 public constant MAX_LOCK_TIME = 365 days * 5; // Maximum lock time (5 years)
@@ -43,21 +45,12 @@ contract PiggyBank {
         uint256 amount,
         uint256 timestamp
     );
-    event Paused(address indexed account);
-    event Unpaused(address indexed account);
+    event Paused(address account);
+    event Unpaused(address account);
     event OwnershipTransferred(
         address indexed previousOwner,
         address indexed newOwner
     );
-    event EmergencyGuardianChanged(
-        address indexed previousGuardian,
-        address indexed newGuardian
-    );
-    event EmergencyModeActivated(address indexed guardian, uint256 unlockTime);
-    event EmergencyWithdrawal(address indexed user, uint256 amount);
-    event DepositLimitUpdated(uint256 oldLimit, uint256 newLimit);
-    event UserBlacklisted(address indexed user);
-    event UserUnblacklisted(address indexed user);
 
     // ============ CUSTOM ERRORS ============
     error PiggyBank__ZeroValue();
@@ -148,52 +141,45 @@ contract PiggyBank {
      * @dev Deposits ETH into the piggy bank with enhanced security
      * @custom:gas Optimized to reduce gas costs
      */
-    function deposit()
-        external
-        payable
-        whenNotPaused
-        nonReentrant
-        validDepositAmount(msg.value)
-    {
-        uint256 amount = msg.value;
+    function deposit() external payable whenNotPaused {
+        // Checks
+        if (msg.value < MIN_DEPOSIT_AMOUNT) revert PiggyBank__DepositTooLow();
+
         uint256 userDeposit = deposits[msg.sender];
+        uint256 newTotalDeposit = userDeposit + msg.value;
 
-        // Check if this is the first deposit from this user
-        if (userDeposit == 0 && userDepositCount[msg.sender] == 0) {
-            numberOfDepositors++;
-        }
-
-        // Update deposits with overflow protection
-        uint256 newTotalDeposit = userDeposit + amount;
         if (newTotalDeposit > MAX_DEPOSIT_AMOUNT) {
             revert PiggyBank__DepositTooHigh();
         }
 
+        // Effects - Update state BEFORE external calls
         deposits[msg.sender] = newTotalDeposit;
-        depositTimestamps[msg.sender] = block.timestamp;
-        userDepositCount[msg.sender]++;
-        totalDeposits += amount;
+        totalDeposits += msg.value;
 
-        emit Deposited(msg.sender, amount, block.timestamp);
+        // Interactions - Emit event (no external calls here)
+        emit Deposited(msg.sender, msg.value, block.timestamp);
     }
 
     /**
      * @dev Withdraws ETH from the piggy bank with enhanced security
      * @custom:gas Uses safe withdrawal pattern with reentrancy protection
      */
-    function withdraw() external whenNotPaused nonReentrant {
-        if (block.timestamp < unlockTime) {
-            if (!emergencyMode) revert PiggyBank__StillLocked();
-        }
+    function withdraw(uint256 amount) external whenNotPaused {
+        // Checks
+        if (block.timestamp < unlockTime) revert PiggyBank__StillLocked();
 
-        uint256 amount = deposits[msg.sender];
-        if (amount == 0) revert PiggyBank__NoDeposits();
+        uint256 userDeposit = deposits[msg.sender];
+        if (amount == 0) revert PiggyBank__ZeroAmount();
+        if (amount > userDeposit) revert PiggyBank__InsufficientBalance();
 
-        // Reset deposit before transfer (reentrancy protection)
-        deposits[msg.sender] = 0;
+        // Effects - Update state BEFORE external calls
+        deposits[msg.sender] = userDeposit - amount;
         totalWithdrawals += amount;
 
-        // Safe transfer with gas optimization
+        // Interactions - Emit event first, then external call
+        emit Withdrawn(msg.sender, amount, block.timestamp);
+
+        // External call at the END to prevent reentrancy
         (bool success, ) = payable(msg.sender).call{value: amount}("");
         if (!success) revert PiggyBank__TransferFailed();
 
@@ -205,20 +191,22 @@ contract PiggyBank {
      * @dev Emergency withdrawal function for guardians
      * @custom:security Requires emergency mode to be active
      */
-    function emergencyWithdraw(
-        address user
-    ) external onlyGuardian whenPaused nonReentrant {
-        if (!emergencyMode) revert PiggyBank__Unauthorized();
+    function withdrawAll() external whenNotPaused {
+        // Checks
+        if (block.timestamp < unlockTime) revert PiggyBank__StillLocked();
 
-        uint256 amount = deposits[user];
-        if (amount == 0) revert PiggyBank__NoDeposits();
+        uint256 userDeposit = deposits[msg.sender];
+        if (userDeposit == 0) revert PiggyBank__DepositTooLow();
 
-        // Reset deposit before transfer
-        deposits[user] = 0;
-        totalWithdrawals += amount;
+        // Effects - Update state BEFORE external calls
+        deposits[msg.sender] = 0;
+        totalWithdrawals += userDeposit;
 
-        // Safe transfer
-        (bool success, ) = payable(user).call{value: amount}("");
+        // Interactions - Emit event first, then external call
+        emit Withdrawn(msg.sender, userDeposit, block.timestamp);
+
+        // External call at the END to prevent reentrancy
+        (bool success, ) = payable(msg.sender).call{value: userDeposit}("");
         if (!success) revert PiggyBank__TransferFailed();
 
         // Emit event after successful transfer (checks-effects-interactions pattern)
@@ -395,8 +383,12 @@ contract PiggyBank {
     /**
      * @dev Checks if user can deposit (gas optimized)
      */
-    function canDeposit(address user) external view returns (bool) {
-        return !paused && deposits[user] < MAX_DEPOSIT_AMOUNT;
+    function getContractStats()
+        external
+        view
+        returns (uint256, uint256, uint256)
+    {
+        return (totalDeposits, totalWithdrawals, address(this).balance);
     }
 
     /**
