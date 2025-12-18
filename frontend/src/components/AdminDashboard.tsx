@@ -13,13 +13,8 @@ interface Transaction {
 export function AdminDashboard() {
   const [showAll, setShowAll] = useState(false);
   const { balance, totalDeposits, totalWithdrawals, transactions } = usePiggyBank();
-  
-  // Mock data - in a real app, this would come from your contract or API
-  const allTransactions: Transaction[] = [
-    // This would be populated with real transaction data
-  ];
 
-  const displayedTransactions = showAll ? allTransactions : allTransactions.slice(0, 5);
+  const displayedTransactions = showAll ? transactions : transactions.slice(0, 5);
 
   return (
     <div className="admin-dashboard">
@@ -51,7 +46,7 @@ export function AdminDashboard() {
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Recent Transactions</h3>
-          {allTransactions.length > 5 && (
+          {transactions.length > 5 && (
             <button
               onClick={() => setShowAll(!showAll)}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
