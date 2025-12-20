@@ -97,20 +97,17 @@ export function usePiggyBank() {
     })
   }
 
-  // Admin functions
-  const { data: totalDeposits } = useReadContract({
+  // Get contract statistics using the aggregated function
+  const { data: contractStats } = useReadContract({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
-    functionName: 'totalDeposits',
+    functionName: 'getContractStats',
     query: { enabled: !!address && address === owner },
   })
 
-  const { data: totalWithdrawals } = useReadContract({
-    address: PIGGYBANK_ADDRESS,
-    abi: PIGGYBANK_ABI,
-    functionName: 'totalWithdrawals',
-    query: { enabled: !!address && address === owner },
-  })
+  // Extract individual values from contractStats tuple
+  const totalDeposits = contractStats?.[0]
+  const totalWithdrawals = contractStats?.[1]
 
   // Note: Transaction history implementation would require integration with
   // event indexers or subgraph queries for complete transaction tracking
