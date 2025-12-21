@@ -22,7 +22,7 @@ export function WithdrawButton() {
       setTimeout(() => setShowError(null), 5000)
       return
     }
-    if (!balance || balance === BigInt(0)) {
+    if (!balance || balance === 0n) {
       setShowError(MESSAGES.NO_FUNDS)
       setTimeout(() => setShowError(null), 5000)
       return
@@ -62,7 +62,7 @@ export function WithdrawButton() {
             ? 'Withdrawing...'
             : `Withdraw All (${balance ? formatEther(balance) : '0'} ETH)`}
         </button>
-        {balance && balance > 0 && (
+        {balance && balance > 0n && (
           <p className="withdraw-note">
             This will withdraw your entire balance of {formatEther(balance)} ETH
           </p>

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useWatchContractEvent } from 'wagmi'
 import { parseEther } from 'viem'
 import { useMemo, useCallback, useRef, useEffect } from 'react'
@@ -15,9 +16,7 @@ interface Transaction {
 export function usePiggyBank() {
   const { address, isConnected } = useAccount()
   const { writeContract, data: hash, isPending } = useWriteContract()
-  
-  // Debounce refetch to prevent excessive network calls
-  const refetchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
 
   // Memoize balance to prevent unnecessary re-renders
   const { data: balance, refetch: refetchBalance } = useReadContract({
@@ -72,15 +71,19 @@ export function usePiggyBank() {
     onLogs(logs) {
       // Automatically refetch balance when deposit event is detected
       refetchBalance()
-      // Only refetch if the event is from our connected address
-      if (isConnected && address && logs.some(log => 
-        log.args && typeof log.args === 'object' && log.args !== null && 
-        'from' in log.args && log.args.from === address
-      )) {
-        debouncedRefetch()
-      }
-      console.log('Deposited event:', logs)
-      depositedEventRef.current?.()
+      
+      // Add deposit transactions to history
+      logs.forEach((log) => {
+        const { depositor, amount, timestamp } = log.args
+        const newTransaction: Transaction = {
+          id: `${log.blockNumber}-${log.logIndex}`,
+          amount: Number(amount) / 1e18, // Convert from wei to ETH
+          timestamp: Number(timestamp),
+          type: 'deposit',
+          user: depositor as string,
+        }
+        setTransactions(prev => [newTransaction, ...prev].slice(0, 50)) // Keep last 50 transactions
+      })
     },
   })
 
@@ -92,15 +95,19 @@ export function usePiggyBank() {
     onLogs(logs) {
       // Automatically refetch balance when withdrawal event is detected
       refetchBalance()
-      // Only refetch if the event is from our connected address
-      if (isConnected && address && logs.some(log => 
-        log.args && typeof log.args === 'object' && log.args !== null && 
-        'to' in log.args && log.args.to === address
-      )) {
-        debouncedRefetch()
-      }
-      console.log('Withdrawn event:', logs)
-      withdrawnEventRef.current?.()
+      
+      // Add withdrawal transactions to history
+      logs.forEach((log) => {
+        const { withdrawer, amount, timestamp } = log.args
+        const newTransaction: Transaction = {
+          id: `${log.blockNumber}-${log.logIndex}`,
+          amount: Number(amount) / 1e18, // Convert from wei to ETH
+          timestamp: Number(timestamp),
+          type: 'withdrawal',
+          user: withdrawer as string,
+        }
+        setTransactions(prev => [newTransaction, ...prev].slice(0, 50)) // Keep last 50 transactions
+      })
     },
   })
 
@@ -146,13 +153,18 @@ export function usePiggyBank() {
     })
   }
 
-  // Admin functions
-  const { data: totalDeposits } = useReadContract({
+  // Get contract statistics using the aggregated function
+  const { data: contractStats } = useReadContract({
     address: PIGGYBANK_ADDRESS,
     abi: PIGGYBANK_ABI,
-    functionName: 'totalDeposits',
+    functionName: 'getContractStats',
     query: { enabled: !!address && address === owner },
   })
+
+  // Extract individual values from contractStats tuple
+  const totalDeposits = contractStats?.[0]
+  const totalWithdrawals = contractStats?.[1]
+
 
   const { data: totalWithdrawals } = useReadContract({
     address: PIGGYBANK_ADDRESS,
