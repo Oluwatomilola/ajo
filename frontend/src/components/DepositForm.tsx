@@ -79,7 +79,8 @@ export function DepositForm({ onAmountChange }: DepositFormProps) {
   };
 
   const formatLockInfo = () => {
-    if (!unlockTime) return MESSAGES.LOCKED;
+    if (unlockTime === undefined) return 'Loading lock information...';
+    if (unlockTime === null) return MESSAGES.LOCKED;
     if (!timeRemaining) return 'Loading lock information...';
 
     const days = timeRemaining.days;
