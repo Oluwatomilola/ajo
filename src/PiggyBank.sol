@@ -29,6 +29,16 @@ contract PiggyBank {
     uint256 public emergencyUnlockTime;
     bool public emergencyMode;
 
+    // Custom errors for gas efficiency
+    error PiggyBank__DepositTooHigh();
+    error PiggyBank__DepositTooLow();
+    error PiggyBank__TransferFailed();
+    error PiggyBank__StillLocked();
+    error PiggyBank__NotOwner();
+    error PiggyBank__ZeroAddress();
+    error PiggyBank__ZeroAmount();
+    error PiggyBank__InsufficientBalance();
+    error PiggyBank__NoDeposit();
     // Statistics for monitoring
     uint256 public totalDeposits;
     uint256 public totalWithdrawals;
@@ -196,7 +206,7 @@ contract PiggyBank {
         if (block.timestamp < unlockTime) revert PiggyBank__StillLocked();
 
         uint256 userDeposit = deposits[msg.sender];
-        if (userDeposit == 0) revert PiggyBank__DepositTooLow();
+        if (userDeposit == 0) revert PiggyBank__NoDeposit();
 
         // Effects - Update state BEFORE external calls
         deposits[msg.sender] = 0;
