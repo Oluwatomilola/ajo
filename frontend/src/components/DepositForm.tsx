@@ -4,6 +4,7 @@ import { useTimelock } from '../hooks/useTimelock';
 import { useMobile } from '../hooks/useMobile';
 import { BUTTONS, LABELS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 import { formatLockTime } from '../constants/uxCopy';
+import { MAX_DEPOSIT_AMOUNT, MIN_DEPOSIT_AMOUNT } from '../config/contracts';
 import { useSecureAlert } from './SecureNotification';
 import { SecureInput } from './ui/SecureInput';
 import { validateEthAmount } from '../utils/security';
@@ -59,11 +60,14 @@ export function DepositForm({ onAmountChange }: DepositFormProps) {
       showError('Invalid Amount', VALIDATION.INVALID_AMOUNT);
       return;
     }
-
-    const numAmount = parseFloat(secureAmount);
-    if (isNaN(numAmount) || numAmount <= 0) {
-      setValidationError('Amount must be greater than 0');
-      showError('Invalid Amount', VALIDATION.INVALID_AMOUNT);
+    if (numAmount > MAX_DEPOSIT_AMOUNT) {
+      setShowError(`Amount exceeds maximum deposit limit of ${MAX_DEPOSIT_AMOUNT} ETH`)
+      setTimeout(() => setShowError(null), 5000)
+      return;
+    }
+    if (numAmount < MIN_DEPOSIT_AMOUNT) {
+      setShowError(`Minimum deposit amount is ${MIN_DEPOSIT_AMOUNT} ETH`)
+      setTimeout(() => setShowError(null), 5000)
       return;
     }
 
