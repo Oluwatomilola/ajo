@@ -1,5 +1,11 @@
 import { Page } from '@playwright/test';
 
+declare global {
+  interface Window {
+    piggyBankContract?: any;
+  }
+}
+
 /**
  * Mocks a connected wallet with the specified address
  * @param page Playwright page object
@@ -49,7 +55,6 @@ export async function mockPiggyBankContract(
       ...opts,
     };
 
-    // @ts-ignore
     window.piggyBankContract = {
       balanceOf: () => defaultOptions.balance,
       unlockTime: () => defaultOptions.unlockTime,
