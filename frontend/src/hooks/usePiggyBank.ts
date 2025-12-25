@@ -5,7 +5,7 @@ import { PIGGYBANK_ABI, PIGGYBANK_ADDRESS } from '../config/contracts'
 
 interface Transaction {
   id: string;
-  amount: string;
+  amount: number;
   timestamp: number;
   type: 'deposit' | 'withdrawal';
   user: string;
