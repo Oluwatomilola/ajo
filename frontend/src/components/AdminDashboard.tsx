@@ -4,7 +4,7 @@ import { formatEther } from 'viem';
 
 interface Transaction {
   id: string;
-  amount: string;
+  amount: number;
   timestamp: number;
   type: 'deposit' | 'withdrawal';
   user: string;

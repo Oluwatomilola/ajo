@@ -7,7 +7,7 @@ import { TIME } from '../constants/appConstants'
 
 interface Transaction {
   id: string;
-  amount: string;
+  amount: number;
   timestamp: number;
   type: 'deposit' | 'withdrawal';
   user: string;
