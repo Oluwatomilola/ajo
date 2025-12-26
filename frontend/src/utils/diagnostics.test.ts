@@ -10,7 +10,6 @@ import {
   saveTransactionForDiagnostics,
   clearDiagnosticsData
 } from './diagnostics'
-import { base, baseSepolia } from '@reown/appkit/networks'
 
 // Mock viem and @reown/appkit/networks
 vi.mock('viem', () => ({

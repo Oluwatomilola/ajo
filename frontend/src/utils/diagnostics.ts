@@ -10,7 +10,6 @@ import type {
   EnvironmentFlags,
   TransactionStatus,
   DiagnosticsData,
-  DiagnosticsError,
   ContractFunction,
   ContractEvent
 } from '../types/diagnostics'

@@ -5,7 +5,7 @@ import { formatEther } from 'viem';
 import { BUTTONS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 
 export function WithdrawButton() {
-  const { balance, unlockTime, withdraw, withdrawAll, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank()
+  const { balance, unlockTime, withdrawAll, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank()
   const { isUnlocked } = useTimelock(unlockTime)
   const [showError, setShowError] = useState<string | null>(null)
 
