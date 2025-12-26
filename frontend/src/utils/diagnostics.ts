@@ -110,12 +110,8 @@ export async function checkContractStatus(): Promise<ContractStatus> {
     })
     
     // Test basic read function
-    let canRead = false
-    let owner: string | undefined
-    
     try {
-      owner = await contract.read.owner()
-      canRead = true
+      await contract.read.owner()
     } catch (error) {
       // Contract might not have owner function or other issues
     }
