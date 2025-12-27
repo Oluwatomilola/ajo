@@ -1,5 +1,7 @@
 // PiggyBank Smart Contract Configuration
 
+import { NETWORK } from '../constants/appConstants';
+
 export const PIGGYBANK_ABI = [
   {
     inputs: [{ internalType: 'uint256', name: '_unlockTime', type: 'uint256' }],
@@ -50,40 +52,8 @@ export const PIGGYBANK_ABI = [
   },
   {
     inputs: [],
-    name: 'totalDeposits',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'totalWithdrawals',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [{ internalType: 'address', name: 'user', type: 'address' }],
-    name: 'getUserDeposit',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
     name: 'isUnlocked',
     outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [],
-    name: 'getContractStats',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-      { internalType: 'uint256', name: '', type: 'uint256' },
-      { internalType: 'uint256', name: '', type: 'uint256' }
-    ],
     stateMutability: 'view',
     type: 'function'
   },
