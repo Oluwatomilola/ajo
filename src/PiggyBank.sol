@@ -68,7 +68,7 @@ contract PiggyBank {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Not owner");
+        require(msg.sender == owner, "PiggyBank: Not owner");
         _;
     }
 
@@ -94,14 +94,13 @@ contract PiggyBank {
      */
     function deposit() external payable whenNotPaused {
         // Checks
-        if (msg.value < MIN_DEPOSIT_AMOUNT) revert PiggyBank__DepositTooLow();
+        require(msg.value > 0, "Must deposit something");
+        require(msg.value >= MIN_DEPOSIT_AMOUNT, "Deposit too small");
 
         uint256 userDeposit = deposits[msg.sender];
         uint256 newTotalDeposit = userDeposit + msg.value;
 
-        if (newTotalDeposit > MAX_DEPOSIT_AMOUNT) {
-            revert PiggyBank__DepositTooHigh();
-        }
+        require(newTotalDeposit <= MAX_DEPOSIT_AMOUNT, "Deposit exceeds max");
 
         // Effects - Update state BEFORE external calls
         deposits[msg.sender] = newTotalDeposit;
@@ -116,48 +115,29 @@ contract PiggyBank {
      * @param amount Amount to withdraw
      * @dev Implements checks-effects-interactions pattern to prevent reentrancy
      */
-    function withdraw(uint256 amount) external whenNotPaused {
-        // Checks
-        if (block.timestamp < unlockTime) revert PiggyBank__StillLocked();
+    /**
+     * @notice Owner withdraws entire contract balance after unlock
+     */
+    function withdraw() external onlyOwner whenNotPaused {
+        require(block.timestamp >= unlockTime, "PiggyBank: Still locked");
 
-        uint256 userDeposit = deposits[msg.sender];
-        if (amount == 0) revert PiggyBank__ZeroAmount();
-        if (amount > userDeposit) revert PiggyBank__InsufficientBalance();
+        uint256 contractBalance = address(this).balance;
+        require(contractBalance > 0, "No balance");
 
-        // Effects - Update state BEFORE external calls
-        deposits[msg.sender] = userDeposit - amount;
-        totalWithdrawals += amount;
+        // Effects
+        totalWithdrawals += contractBalance;
 
-        // Interactions - Emit event first, then external call
-        emit Withdrawn(msg.sender, amount, block.timestamp);
-
-        // External call at the END to prevent reentrancy
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
-        if (!success) revert PiggyBank__TransferFailed();
+        // Interactions
+        emit Withdrawn(msg.sender, contractBalance, block.timestamp);
+        (bool success, ) = payable(msg.sender).call{value: contractBalance}("");
+        require(success, "Transfer failed");
     }
 
     /**
      * @notice Withdraw all funds from the piggy bank
      * @dev Implements checks-effects-interactions pattern to prevent reentrancy
      */
-    function withdrawAll() external whenNotPaused {
-        // Checks
-        if (block.timestamp < unlockTime) revert PiggyBank__StillLocked();
-
-        uint256 userDeposit = deposits[msg.sender];
-        if (userDeposit == 0) revert PiggyBank__NoDeposit();
-
-        // Effects - Update state BEFORE external calls
-        deposits[msg.sender] = 0;
-        totalWithdrawals += userDeposit;
-
-        // Interactions - Emit event first, then external call
-        emit Withdrawn(msg.sender, userDeposit, block.timestamp);
-
-        // External call at the END to prevent reentrancy
-        (bool success, ) = payable(msg.sender).call{value: userDeposit}("");
-        if (!success) revert PiggyBank__TransferFailed();
-    }
+    // Removed per-user withdrawAll in favor of owner-managed withdraw()
 
     // View functions
     function getBalance() external view returns (uint256) {
