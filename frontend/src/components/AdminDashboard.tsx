@@ -80,9 +80,16 @@ export function AdminDashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <time dateTime={new Date(tx.timestamp * 1000).toISOString()}>
-                        {new Date(tx.timestamp * 1000).toLocaleString()}
-                      </time>
+                      {(() => {
+                        // Support timestamps in seconds or milliseconds
+                        const raw = Number(tx.timestamp || Date.now())
+                        const ms = raw > 1e12 ? raw : raw * 1000
+                        return (
+                          <time dateTime={new Date(ms).toISOString()}>
+                            {new Date(ms).toLocaleString()}
+                          </time>
+                        )
+                      })()}
                     </td>
                   </tr>
                 ))
