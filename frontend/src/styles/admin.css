@@ -197,19 +197,26 @@
   font-weight: 500;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive Design */
+
+/* Small mobile devices (up to 360px) */
+@media (max-width: 360px) {
   .admin-dashboard {
+    padding: 0.75rem;
+  }
+  
+  .admin-dashboard h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .grid {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .bg-white {
     padding: 1rem;
-  }
-  
-  .grid-cols-1 {
-    grid-template-columns: 1fr;
-  }
-  
-  .px-6 {
-    padding-left: 1rem;
-    padding-right: 1rem;
   }
   
   .text-2xl {
@@ -217,6 +224,246 @@
   }
   
   .text-sm {
+    font-size: 0.75rem;
+  }
+  
+  .font-bold {
+    font-weight: 600;
+  }
+  
+  .p-6 {
+    padding: 1rem;
+  }
+  
+  .overflow-x-auto {
+    margin: 0 -0.75rem;
+  }
+  
+  .min-w-full {
+    font-size: 0.75rem;
+  }
+  
+  .px-6 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .py-3 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .text-xs {
+    font-size: 0.6875rem;
+  }
+  
+  .uppercase {
+    font-size: 0.625rem;
+  }
+  
+  .tracking-wider {
+    letter-spacing: 0.025em;
+  }
+  
+  .whitespace-nowrap {
+    white-space: nowrap;
+  }
+  
+  .px-6 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .py-4 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+
+/* Large mobile devices (361px to 414px) */
+@media (min-width: 361px) and (max-width: 414px) {
+  .admin-dashboard {
+    padding: 1rem;
+  }
+  
+  .admin-dashboard h2 {
+    font-size: 1.75rem;
+  }
+  
+  .grid {
+    gap: 1.25rem;
+  }
+  
+  .bg-white {
+    padding: 1.25rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.375rem;
+  }
+  
+  .text-sm {
     font-size: 0.8125rem;
+  }
+  
+  .p-6 {
+    padding: 1.25rem;
+  }
+  
+  .px-6 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .py-3 {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+  
+  .py-4 {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+  
+  .text-xs {
+    font-size: 0.75rem;
+  }
+}
+
+/* Tablet devices (415px to 768px) */
+@media (min-width: 415px) and (max-width: 768px) {
+  .admin-dashboard {
+    padding: 1.5rem;
+  }
+  
+  .admin-dashboard h2 {
+    font-size: 1.875rem;
+  }
+  
+  .grid {
+    gap: 1.5rem;
+  }
+  
+  .bg-white {
+    padding: 1.5rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem;
+  }
+  
+  .p-6 {
+    padding: 1.5rem;
+  }
+  
+  .px-6 {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  
+  .py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  
+  .py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .text-xs {
+    font-size: 0.75rem;
+  }
+  
+  .uppercase {
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Desktop and tablet landscape (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .admin-dashboard {
+    padding: 1.75rem;
+  }
+  
+  .admin-dashboard h2 {
+    font-size: 2rem;
+  }
+  
+  .grid {
+    gap: 1.75rem;
+  }
+  
+  .bg-white {
+    padding: 1.75rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.625rem;
+  }
+  
+  .p-6 {
+    padding: 1.75rem;
+  }
+  
+  .px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .py-3 {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+  
+  .py-4 {
+    padding-top: 1.125rem;
+    padding-bottom: 1.125rem;
+  }
+}
+
+/* Large desktop (1025px and above) */
+@media (min-width: 1025px) {
+  .admin-dashboard {
+    padding: 2.5rem;
+  }
+  
+  .admin-dashboard h2 {
+    font-size: 2.25rem;
+  }
+  
+  .grid {
+    gap: 2rem;
+  }
+  
+  .bg-white {
+    padding: 2rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.75rem;
+  }
+  
+  .p-6 {
+    padding: 2rem;
+  }
+  
+  .px-6 {
+    padding-left: 1.75rem;
+    padding-right: 1.75rem;
+  }
+  
+  .py-3 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .py-4 {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
   }
 }

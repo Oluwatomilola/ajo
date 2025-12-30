@@ -34,6 +34,33 @@
   transition: all 0.2s;
 }
 
+.save-later-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.amount-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+.amount-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.amount-input::placeholder {
+  color: var(--text-secondary);
+}
+
 .save-later-button:hover {
   background: var(--bg-card);
   border-color: var(--primary);
@@ -145,13 +172,277 @@
   color: var(--text-primary);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive Design */
+
+/* Small mobile devices (up to 360px) */
+@media (max-width: 360px) {
+  .save-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .save-later-button {
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+    margin-top: 0.75rem;
+  }
+  
   .saved-states {
-    padding: 1rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    max-height: 300px;
+  }
+  
+  .saved-states h3 {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
   }
   
   .saved-states-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .saved-state-card {
+    padding: 0.75rem;
+  }
+  
+  .saved-state-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  
+  .saved-state-header h4 {
+    font-size: 0.875rem;
+    padding-right: 0;
+  }
+  
+  .saved-state-actions {
+    justify-content: flex-end;
+    flex-direction: row;
+  }
+  
+  .load-button,
+  .delete-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .saved-state-details {
+    font-size: 0.8125rem;
+  }
+  
+  .saved-state-details > div {
+    margin-bottom: 0.375rem;
+  }
+  
+  .saved-state-details span:first-child {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Large mobile devices (361px to 414px) */
+@media (min-width: 361px) and (max-width: 414px) {
+  .save-button {
+    padding: 0.4375rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+  
+  .save-later-button {
+    padding: 0.625rem;
+    font-size: 0.875rem;
+  }
+  
+  .saved-states {
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    max-height: 350px;
+  }
+  
+  .saved-states h3 {
+    margin-bottom: 1.25rem;
+    font-size: 1.1875rem;
+  }
+  
+  .saved-states-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+  
+  .saved-state-card {
+    padding: 0.875rem;
+  }
+  
+  .saved-state-header {
+    flex-direction: row;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  
+  .saved-state-header h4 {
+    font-size: 0.9375rem;
+  }
+  
+  .saved-state-actions {
+    flex-direction: row;
+  }
+  
+  .load-button,
+  .delete-button {
+    padding: 0.3125rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+  
+  .saved-state-details {
+    font-size: 0.875rem;
+  }
+}
+
+/* Tablet devices (415px to 768px) */
+@media (min-width: 415px) and (max-width: 768px) {
+  .save-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .save-later-button {
+    padding: 0.75rem;
+    font-size: 0.9375rem;
+  }
+  
+  .saved-states {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    max-height: 400px;
+  }
+  
+  .saved-states h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+  }
+  
+  .saved-states-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+  
+  .saved-state-card {
+    padding: 1rem;
+  }
+  
+  .saved-state-header {
+    flex-direction: row;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .saved-state-header h4 {
+    font-size: 1rem;
+  }
+  
+  .saved-state-actions {
+    flex-direction: row;
+  }
+  
+  .load-button,
+  .delete-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .saved-state-details {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Desktop and tablet landscape (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .save-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+  
+  .save-later-button {
+    padding: 0.875rem;
+    font-size: 1rem;
+  }
+  
+  .saved-states {
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  
+  .saved-states-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+  
+  .saved-state-card {
+    padding: 1.125rem;
+  }
+  
+  .saved-state-header {
+    gap: 1.25rem;
+  }
+  
+  .saved-state-header h4 {
+    font-size: 1.0625rem;
+  }
+  
+  .load-button,
+  .delete-button {
+    padding: 0.4375rem 0.875rem;
+    font-size: 0.9375rem;
+  }
+  
+  .saved-state-details {
+    font-size: 1rem;
+  }
+}
+
+/* Large desktop (1025px and above) */
+@media (min-width: 1025px) {
+  .save-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .save-later-button {
+    padding: 1rem;
+    font-size: 1.0625rem;
+  }
+  
+  .saved-states {
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .saved-states-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .saved-state-card {
+    padding: 1.25rem;
+  }
+  
+  .saved-state-header {
+    gap: 1.5rem;
+  }
+  
+  .saved-state-header h4 {
+    font-size: 1.125rem;
+  }
+  
+  .load-button,
+  .delete-button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .saved-state-details {
+    font-size: 1.0625rem;
   }
 }

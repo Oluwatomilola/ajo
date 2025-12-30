@@ -77,7 +77,10 @@ export function validateEnvironment() {
   }
 
   if (errors.length === 0 && warnings.length === 0) {
-    console.log('✅ Environment configuration is valid')
+    // Only log success in development mode
+    if (import.meta.env.DEV) {
+      console.log('✅ Environment configuration is valid')
+    }
   }
 
   return {
