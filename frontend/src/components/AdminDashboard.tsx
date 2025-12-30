@@ -76,7 +76,12 @@ export function AdminDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span aria-label={`User address: ${tx.user}`}>
-                        {`${tx.user.substring(0, 6)}...${tx.user.substring(38)}`}
+                        {(() => {
+                          const addr = String(tx.user || '')
+                          const prefix = addr.slice(0, 6)
+                          const suffix = addr.length > 10 ? addr.slice(-4) : addr.slice(6)
+                          return `${prefix}...${suffix}`
+                        })()}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
