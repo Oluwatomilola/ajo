@@ -8,9 +8,17 @@ interface Toast {
   txHash?: string
 }
 
+/**
+ * TransactionToast component provides consistent feedback for all transaction states.
+ * Always shows clear messages for:
+ * - Pending: "Transaction submitted"
+ * - Success: "Transaction confirmed"
+ * - Error: "Transaction failed"
+ * This ensures users always receive feedback about their transaction status.
+ */
 export function TransactionToast() {
-  const [toasts, setToasts] = useState<Toast[]>([])
-  const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>()
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>();
 
   // Watch for pending transactions
   useWatchPendingTransactions({
@@ -44,7 +52,7 @@ export function TransactionToast() {
       // Add success toast
       addToast({
         id: `${pendingTxHash}-success`,
-        message: 'Transaction confirmed successfully!',
+        message: 'Transaction confirmed',
         type: 'success',
         txHash: pendingTxHash,
       })
@@ -63,7 +71,7 @@ export function TransactionToast() {
       // Add error toast
       addToast({
         id: `${pendingTxHash}-error`,
-        message: 'Transaction failed. Please try again.',
+        message: 'Transaction failed',
         type: 'error',
         txHash: pendingTxHash,
       })
