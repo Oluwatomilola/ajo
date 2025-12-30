@@ -4,19 +4,15 @@ import { WalletButton } from './WalletButton'
 import { TransactionToast } from './TransactionToast'
 import { useAccount } from 'wagmi'
 import { getWalletHistory, clearWalletHistory } from '../utils/walletStorage'
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 
 export function WalletConnectPage() {
   const { isConnected } = useAccount()
   const [history, setHistory] = useState(getWalletHistory())
 
-  useEffect(() => {
-    // Reduce polling frequency to improve performance
-    const interval = setInterval(() => {
-      setHistory(getWalletHistory())
-    }, 30000) // Poll every 30 seconds instead of every second
-
-    return () => clearInterval(interval)
+  // Memoized refresh function to prevent unnecessary re-renders
+  const refreshHistory = useCallback(() => {
+    setHistory(getWalletHistory())
   }, [])
 
   const handleClearHistory = () => {
@@ -24,6 +20,10 @@ export function WalletConnectPage() {
       clearWalletHistory()
       setHistory([])
     }
+  }
+
+  const handleRefreshHistory = () => {
+    refreshHistory()
   }
 
   return (
@@ -70,14 +70,23 @@ export function WalletConnectPage() {
         <div className="wallet-section">
           <div className="section-header">
             <h2>Connection History</h2>
-            {history.length > 0 && (
+            <div className="history-actions">
               <button
-                className="btn-clear"
-                onClick={handleClearHistory}
+                className="btn-refresh"
+                onClick={handleRefreshHistory}
+                title="Refresh history"
               >
-                Clear
+                🔄
               </button>
-            )}
+              {history.length > 0 && (
+                <button
+                  className="btn-clear"
+                  onClick={handleClearHistory}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
           {history.length === 0 ? (
