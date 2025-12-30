@@ -74,7 +74,9 @@ export function usePiggyBank() {
       
       // Add deposit transactions to history
       logs.forEach((log) => {
-        const { depositor, amount, timestamp } = log.args
+        const depositor = log.args?.depositor ?? log.args?.from ?? log.args?.[0]
+        const amount = log.args?.amount ?? log.args?.[1]
+        const timestamp = log.args?.timestamp ?? Date.now()
         const newTransaction: Transaction = {
           id: `${log.blockNumber}-${log.logIndex}`,
           amount: Number(amount) / 1e18, // Convert from wei to ETH
@@ -98,7 +100,9 @@ export function usePiggyBank() {
       
       // Add withdrawal transactions to history
       logs.forEach((log) => {
-        const { withdrawer, amount, timestamp } = log.args
+        const withdrawer = log.args?.withdrawer ?? log.args?.to ?? log.args?.[0]
+        const amount = log.args?.amount ?? log.args?.[1]
+        const timestamp = log.args?.timestamp ?? Date.now()
         const newTransaction: Transaction = {
           id: `${log.blockNumber}-${log.logIndex}`,
           amount: Number(amount) / 1e18, // Convert from wei to ETH

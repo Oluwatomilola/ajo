@@ -24,10 +24,9 @@ contract PiggyBank {
     mapping(address => uint256) public depositTimestamps;
     mapping(address => uint256) public userDepositCount;
 
-    // Emergency functions with timelock
-    address public emergencyGuardian;
-    uint256 public emergencyUnlockTime;
-    bool public emergencyMode;
+    // Deposit limits
+    uint256 public constant MAX_DEPOSIT_AMOUNT = type(uint256).max;
+    uint256 public constant MIN_DEPOSIT_AMOUNT = 0.001 ether;
 
     // Custom errors for gas efficiency
     error PiggyBank__DepositTooHigh();
@@ -44,17 +43,8 @@ contract PiggyBank {
     uint256 public totalWithdrawals;
     uint256 public numberOfDepositors;
 
-    // ============ EVENTS ============
-    event Deposited(
-        address indexed depositor,
-        uint256 amount,
-        uint256 timestamp
-    );
-    event Withdrawn(
-        address indexed withdrawer,
-        uint256 amount,
-        uint256 timestamp
-    );
+    event Deposited(address indexed depositor, uint256 amount);
+    event Withdrawn(address indexed withdrawer, uint256 amount);
     event Paused(address account);
     event Unpaused(address account);
     event OwnershipTransferred(
@@ -167,7 +157,7 @@ contract PiggyBank {
         totalDeposits += msg.value;
 
         // Interactions - Emit event (no external calls here)
-        emit Deposited(msg.sender, msg.value, block.timestamp);
+        emit Deposited(msg.sender, msg.value);
     }
 
     /**
@@ -188,7 +178,7 @@ contract PiggyBank {
         totalWithdrawals += contractBalance;
 
         // Interactions
-        emit Withdrawn(msg.sender, contractBalance, block.timestamp);
+        emit Withdrawn(msg.sender, contractBalance);
         (bool success, ) = payable(msg.sender).call{value: contractBalance}("");
         require(success, "Transfer failed");
         // External call at the END to prevent reentrancy

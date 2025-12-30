@@ -75,8 +75,7 @@ export const PIGGYBANK_ABI = [
     anonymous: false,
     inputs: [
       { indexed: true, internalType: 'address', name: 'depositor', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'timestamp', type: 'uint256' }
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }
     ],
     name: 'Deposited',
     type: 'event'
@@ -85,8 +84,7 @@ export const PIGGYBANK_ABI = [
     anonymous: false,
     inputs: [
       { indexed: true, internalType: 'address', name: 'withdrawer', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'timestamp', type: 'uint256' }
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }
     ],
     name: 'Withdrawn',
     type: 'event'
@@ -121,5 +119,6 @@ export const PIGGYBANK_ADDRESS = (import.meta.env.VITE_PIGGYBANK_ADDRESS || '') 
 export const CHAIN_ID = 84532 // Base Sepolia testnet
 
 // Contract limits - must match PiggyBank.sol contract constants
-export const MAX_DEPOSIT_AMOUNT = 100 // 100 ETH
+// NOTE: values are in ETH (frontend UI units). Contract uses uint256 max for max deposit.
+export const MAX_DEPOSIT_AMOUNT = 100 // 100 ETH (UI validation)
 export const MIN_DEPOSIT_AMOUNT = 0.001 // 0.001 ETH
