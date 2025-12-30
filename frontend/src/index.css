@@ -87,3 +87,64 @@ textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-dark);
 }
+
+/* Mobile-first responsive utilities */
+@media (max-width: 360px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 361px) and (max-width: 414px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 415px) and (max-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Prevent horizontal scrolling on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 768px) {
+  button, 
+  .btn, 
+  .nav-btn, 
+  .tab, 
+  .network-btn,
+  .network-option,
+  .copy-btn {
+    min-height: 44px; /* Apple's recommended minimum touch target */
+    min-width: 44px;
+  }
+  
+  /* Increase spacing between interactive elements */
+  button + button,
+  .btn + .btn,
+  .nav-btn + .nav-btn {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Prevent text size adjustment on mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
+
+/* Smooth scrolling on mobile */
+@media (max-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

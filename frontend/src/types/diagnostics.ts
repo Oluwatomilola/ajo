@@ -80,6 +80,6 @@ export interface DiagnosticsData {
 export interface DiagnosticsError {
   message: string;
   code?: string;
-  details?: any;
+  details?: unknown;
   timestamp: number;
 }
