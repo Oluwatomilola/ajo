@@ -3,6 +3,16 @@ import { useAccount, useBalance, useDisconnect } from 'wagmi'
 import { formatEther } from 'viem'
 // Using simple inline symbols instead of Heroicons to avoid an extra dependency in tests
 
+// Network explorer URLs mapping
+const NETWORK_EXPLORERS = {
+  84532: 'https://sepolia.basescan.org', // Base Sepolia
+  8453: 'https://basescan.org',          // Base Mainnet
+  1: 'https://etherscan.io',            // Ethereum Mainnet
+  11155111: 'https://sepolia.etherscan.io', // Ethereum Sepolia
+  137: 'https://polygonscan.com',        // Polygon Mainnet
+  80001: 'https://mumbai.polygonscan.com', // Polygon Mumbai
+}
+
 export function WalletInfo() {
   const { address, isConnected, chain } = useAccount()
   const { disconnect } = useDisconnect()
@@ -92,7 +102,29 @@ export function WalletInfo() {
       <div className="wallet-actions">
         <button
           className="btn-secondary"
-          onClick={() => window.open(`https://sepolia.basescan.org/address/${address}`, '_blank')}
+          onClick={() => {
+            const getExplorerUrl = (chainId?: number) => {
+              switch (chainId) {
+                case 8453: // Base mainnet
+                  return `https://basescan.org/address/${address}`
+                case 84532: // Base Sepolia testnet
+                  return `https://sepolia.basescan.org/address/${address}`
+                case 1: // Ethereum mainnet
+                  return `https://etherscan.io/address/${address}`
+                case 11155111: // Ethereum Sepolia testnet
+                  return `https://sepolia.etherscan.io/address/${address}`
+                default:
+                  return `https://basescan.org/address/${address}` // fallback to Base
+              }
+            }
+            window.open(getExplorerUrl(chain?.id), '_blank')
+            const explorerUrl = chain?.id ? NETWORK_EXPLORERS[chain.id as keyof typeof NETWORK_EXPLORERS] : null
+            if (explorerUrl) {
+              window.open(`${explorerUrl}/address/${address}`, '_blank')
+            } else {
+              alert('Explorer not available for this network')
+            }
+          }}
         >
           View on Explorer
         </button>
