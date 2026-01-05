@@ -51,7 +51,7 @@ export function PiggyBankDashboard() {
       {showSavedStates && (
         <SaveForLater 
           savedStates={savedStates}
-          onLoadState={(state) => {
+          onLoadState={() => {
             // Handle loading a saved state
             setShowSavedStates(false)
           }}

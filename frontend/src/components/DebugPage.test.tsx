@@ -109,7 +109,7 @@ describe('DebugPage', () => {
       setItem: vi.fn(),
       removeItem: vi.fn(),
       clear: vi.fn(),
-    } as any
+    } as unknown as Storage
   })
 
   afterEach(() => {
