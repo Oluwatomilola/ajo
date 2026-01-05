@@ -74,7 +74,7 @@ export async function checkBlockchainConnection(): Promise<BlockchainConnectionS
       chainName: network?.name || 'Unknown',
       rpcUrl: network?.rpcUrls.default.http[0] || 'Unknown',
       blockNumber: Number(blockNumber),
-      networkType: CHAIN_ID === base.id ? 'mainnet' : CHAIN_ID === baseSepolia.id ? 'testnet' : 'unknown',
+      networkType: network?.id === base.id ? 'mainnet' : network?.id === baseSepolia.id ? 'testnet' : 'unknown',
       lastBlockTime: Number(block.timestamp) * 1000, // Convert to milliseconds
     }
   } catch (error) {
@@ -117,7 +117,7 @@ export async function checkContractStatus(): Promise<ContractStatus> {
     }
     
     // Check if contract is deployed and get code
-    const code = await client.getCode(getAddress(PIGGYBANK_ADDRESS))
+    const code = await client.getCode({ address: getAddress(PIGGYBANK_ADDRESS) })
     const isDeployed = !!code && code !== '0x'
     
     // Create contract instance to test ABI
