@@ -74,9 +74,12 @@ export function usePiggyBank() {
       
       // Add deposit transactions to history
       logs.forEach((log) => {
-        const depositor = log.args?.depositor ?? log.args?.from ?? log.args?.[0]
-        const amount = log.args?.amount ?? log.args?.[1]
-        const timestamp = log.args?.timestamp ?? Date.now()
+        // The log.args shape from different providers may vary — coerce to any to
+        // avoid strict index/property type errors and normalize the values.
+        const args: any = log.args as any
+        const depositor = args?.depositor ?? args?.from ?? args?.[0]
+        const amount = args?.amount ?? args?.[1]
+        const timestamp = args?.timestamp ?? Date.now()
         const newTransaction: Transaction = {
           id: `${log.blockNumber}-${log.logIndex}`,
           amount: Number(amount) / 1e18, // Convert from wei to ETH
@@ -100,9 +103,10 @@ export function usePiggyBank() {
       
       // Add withdrawal transactions to history
       logs.forEach((log) => {
-        const withdrawer = log.args?.withdrawer ?? log.args?.to ?? log.args?.[0]
-        const amount = log.args?.amount ?? log.args?.[1]
-        const timestamp = log.args?.timestamp ?? Date.now()
+        const args: any = log.args as any
+        const withdrawer = args?.withdrawer ?? args?.to ?? args?.[0]
+        const amount = args?.amount ?? args?.[1]
+        const timestamp = args?.timestamp ?? Date.now()
         const newTransaction: Transaction = {
           id: `${log.blockNumber}-${log.logIndex}`,
           amount: Number(amount) / 1e18, // Convert from wei to ETH
@@ -164,6 +168,9 @@ export function usePiggyBank() {
   const totalDeposits = contractStats && contractStats.length >= 3 ? contractStats[0] : undefined
   const totalWithdrawals = contractStats && contractStats.length >= 3 ? contractStats[1] : undefined
 
+  // Compute owner flag for convenience in components and tests
+  const isOwner = !!(address && owner && String(address).toLowerCase() === String(owner).toLowerCase())
+
 
   const { data: totalWithdrawals } = useReadContract({
     address: PIGGYBANK_ADDRESS,
@@ -200,6 +207,7 @@ export function usePiggyBank() {
     refetchBalance,
     refetchUnlockTime,
     isOwner,
+  }
     debouncedRefetch,
   }), [
     balance, 
