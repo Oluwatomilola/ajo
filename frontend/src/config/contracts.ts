@@ -116,7 +116,7 @@ export const PIGGYBANK_ABI = [
 export const PIGGYBANK_ADDRESS = (import.meta.env.VITE_PIGGYBANK_ADDRESS || '') as `0x${string}`
 
 // Network configuration
-export const CHAIN_ID = 84532 // Base Sepolia testnet
+export const CHAIN_ID: number = 84532 // Base Sepolia testnet
 
 // Contract limits - must match PiggyBank.sol contract constants
 // NOTE: values are in ETH (frontend UI units). Contract uses uint256 max for max deposit.
