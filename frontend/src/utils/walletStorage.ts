@@ -1,5 +1,7 @@
 // Wallet Connection History Storage
 
+import { VALIDATION, TIME } from '../constants/appConstants';
+
 interface WalletConnection {
   address: string
   chainId: number
@@ -8,7 +10,7 @@ interface WalletConnection {
 }
 
 const STORAGE_KEY = 'ajo_wallet_history'
-const MAX_HISTORY = 5
+const MAX_HISTORY = VALIDATION.MAX_WALLET_HISTORY
 
 export function saveWalletConnection(connection: Omit<WalletConnection, 'connectedAt'>) {
   try {
@@ -42,7 +44,7 @@ export function getWalletHistory(): WalletConnection[] {
     const history = JSON.parse(stored) as WalletConnection[]
 
     // Filter out connections older than 30 days
-    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000)
+    const thirtyDaysAgo = Date.now() - TIME.THIRTY_DAYS_IN_MS
     return history.filter(c => c.connectedAt > thirtyDaysAgo)
   } catch (error) {
     console.error('Failed to get wallet history:', error)
