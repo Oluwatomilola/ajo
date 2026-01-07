@@ -11,10 +11,7 @@ contract PiggyBankTest is Test {
     event Withdrawn(address indexed withdrawer, uint256 amount);
     event Paused(address account);
     event Unpaused(address account);
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // Test users
     address owner;
@@ -73,9 +70,7 @@ contract PiggyBankTest is Test {
         vm.prank(user3);
         piggyBank.deposit{value: DEPOSIT_AMOUNT * 3}();
 
-        uint256 totalDeposited = DEPOSIT_AMOUNT +
-            (DEPOSIT_AMOUNT * 2) +
-            (DEPOSIT_AMOUNT * 3);
+        uint256 totalDeposited = DEPOSIT_AMOUNT + (DEPOSIT_AMOUNT * 2) + (DEPOSIT_AMOUNT * 3);
         assertEq(piggyBank.getBalance(), totalDeposited);
     }
 
