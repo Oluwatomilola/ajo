@@ -74,9 +74,9 @@ export function usePiggyBank() {
       
       // Add deposit transactions to history
       logs.forEach((log) => {
-        // The log.args shape from different providers may vary — coerce to any to
+        // The log.args shape from different providers may vary — coerce to unknown to
         // avoid strict index/property type errors and normalize the values.
-        const args: any = log.args as any
+        const args: unknown = log.args
         const depositor = args?.depositor ?? args?.from ?? args?.[0]
         const amount = args?.amount ?? args?.[1]
         const timestamp = args?.timestamp ?? Date.now()
@@ -103,7 +103,7 @@ export function usePiggyBank() {
       
       // Add withdrawal transactions to history
       logs.forEach((log) => {
-        const args: any = log.args as any
+        const args: unknown = log.args
         const withdrawer = args?.withdrawer ?? args?.to ?? args?.[0]
         const amount = args?.amount ?? args?.[1]
         const timestamp = args?.timestamp ?? Date.now()

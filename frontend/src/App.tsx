@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import { Header } from './components/Header'
 import { PiggyBankDashboard } from './components/PiggyBankDashboard'
@@ -20,25 +20,19 @@ import './styles/mobile.css'
 type Page = 'home' | 'wallet' | 'admin' | 'debug'
 
 function App() {
-  const { isConnected, address } = useAccount();
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [isAdmin, setIsAdmin] = useState(false);
-  const { owner } = usePiggyBank();
-  
-  // Mobile hooks
-  const isMobile = useMobile()
-  const isTouchDevice = useTouchDevice()
+  const { isConnected, address } = useAccount()
+  const [currentPage, setCurrentPage] = useState<Page>('home')
+  const { owner } = usePiggyBank()
 
   // Track wallet connection history
   useWalletHistory()
 
   // Check if current user is admin
-  useEffect(() => {
+  const isAdmin = useMemo(() => {
     if (address && owner) {
-      setIsAdmin(address.toLowerCase() === owner.toLowerCase())
-    } else {
-      setIsAdmin(false)
+      return address.toLowerCase() === owner.toLowerCase()
     }
+    return false
   }, [address, owner])
 
   return (

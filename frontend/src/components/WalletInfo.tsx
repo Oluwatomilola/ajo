@@ -4,13 +4,27 @@ import { formatEther } from 'viem'
 // Using simple inline symbols instead of Heroicons to avoid an extra dependency in tests
 
 // Network explorer URLs mapping
-const NETWORK_EXPLORERS = {
+const NETWORK_EXPLORERS: Record<number, string> = {
   84532: 'https://sepolia.basescan.org', // Base Sepolia
   8453: 'https://basescan.org',          // Base Mainnet
   1: 'https://etherscan.io',            // Ethereum Mainnet
   11155111: 'https://sepolia.etherscan.io', // Ethereum Sepolia
   137: 'https://polygonscan.com',        // Polygon Mainnet
   80001: 'https://mumbai.polygonscan.com', // Polygon Mumbai
+}
+
+/**
+ * Get the explorer URL for a given chain ID
+ */
+function getExplorerUrl(chainId: number, address: string): string {
+  const explorerBase = NETWORK_EXPLORERS[chainId]
+  
+  if (!explorerBase) {
+    // Fallback to Base mainnet for unknown networks
+    return `https://basescan.org/address/${address}`
+  }
+  
+  return `${explorerBase}/address/${address}`
 }
 
 export function WalletInfo() {
@@ -43,6 +57,16 @@ export function WalletInfo() {
       }
       document.body.removeChild(textArea)
     }
+  }
+
+  const handleViewOnExplorer = () => {
+    if (!address || !chain?.id) {
+      alert('Unable to open explorer: missing address or network')
+      return
+    }
+
+    const url = getExplorerUrl(chain.id, address)
+    window.open(url, '_blank')
   }
 
   if (!isConnected || !address) {
@@ -110,6 +134,7 @@ export function WalletInfo() {
               alert('Explorer not available for this network')
             }
           }}
+          onClick={handleViewOnExplorer}
         >
           View on Explorer
         </button>

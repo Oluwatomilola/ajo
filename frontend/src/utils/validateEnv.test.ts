@@ -398,7 +398,7 @@ describe('validateEnvironment', () => {
 
   describe('Edge Cases', () => {
     it('should handle null/undefined project ID', () => {
-      mockImportMeta.env.VITE_REOWN_PROJECT_ID = null as any
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = null as unknown
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
       
       expect(() => validateEnvironment()).not.toThrow()
@@ -407,7 +407,7 @@ describe('validateEnvironment', () => {
     })
 
     it('should handle null/undefined contract address', () => {
-      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = null as any
       
       expect(() => validateEnvironment()).not.toThrow()
@@ -416,6 +416,7 @@ describe('validateEnvironment', () => {
     })
 
     it('should handle undefined project ID explicitly', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockImportMeta.env.VITE_REOWN_PROJECT_ID = undefined as any
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = '0x1234567890123456789012345678901234567890'
       
@@ -425,7 +426,7 @@ describe('validateEnvironment', () => {
     })
 
     it('should handle undefined contract address explicitly', () => {
-      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = undefined as any
       
       const result = validateEnvironment()
