@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 
 declare global {
   interface Window {
-    piggyBankContract?: any;
+    piggyBankContract?: unknown;
   }
 }
 
@@ -16,7 +16,7 @@ export async function mockWalletConnection(page: Page, address = '0x123456789012
     // Mock window.ethereum
     window.ethereum = {
       isMetaMask: true,
-      request: async (request: { method: string, params?: any[] }) => {
+      request: async (request: { method: string, params?: unknown[] }) => {
         if (request.method === 'eth_requestAccounts') {
           return [walletAddress];
         }
