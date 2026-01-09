@@ -108,6 +108,27 @@ export class ErrorBoundary extends Component<Props, State> {
                   Reload Page
                 </Button>
               </div>
+              {showDetails && this.state.error && (
+                <details className="error-boundary__details">
+                  <summary>Error Details (Development Only)</summary>
+                  <div className="error-boundary__error-details">
+                    <p><strong>Error ID:</strong> {this.state.errorId}</p>
+                    <p><strong>Message:</strong> {this.state.error.message}</p>
+                    <p><strong>Stack:</strong></p>
+                    <pre className="error-boundary__stack">
+                      {this.state.error.stack}
+                    </pre>
+                    {this.state.errorInfo && (
+                      <>
+                        <p><strong>Component Stack:</strong></p>
+                        <pre className="error-boundary__stack">
+                          {this.state.errorInfo.componentStack}
+                        </pre>
+                      </>
+                    )}
+                  </div>
+                </details>
+              )}
             </div>
           </div>
         )

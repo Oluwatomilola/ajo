@@ -130,7 +130,7 @@ export async function checkContractStatus(): Promise<ContractStatus> {
     // Test basic read function
     try {
       await contract.read.owner()
-    } catch (error) {
+    } catch {
       // Contract might not have owner function or other issues
     }
     
@@ -144,7 +144,7 @@ export async function checkContractStatus(): Promise<ContractStatus> {
         outputs: fn.outputs?.map(o => o.type) || [],
         stateMutability: fn.stateMutability || 'view'
       }))
-    
+
     const events: ContractEvent[] = PIGGYBANK_ABI
       .filter((item): item is ABIItem => item.type === 'event')
       .map(event => ({

@@ -47,10 +47,7 @@ contract PiggyBank {
     event Withdrawn(address indexed withdrawer, uint256 amount);
     event Paused(address account);
     event Unpaused(address account);
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // ============ CUSTOM ERRORS ============
     error PiggyBank__ZeroValue();
@@ -179,7 +176,7 @@ contract PiggyBank {
 
         // Interactions
         emit Withdrawn(msg.sender, contractBalance);
-        (bool success, ) = payable(msg.sender).call{value: contractBalance}("");
+        (bool success,) = payable(msg.sender).call{value: contractBalance}("");
         require(success, "Transfer failed");
         // External call at the END to prevent reentrancy
         (bool success, ) = payable(msg.sender).call{value: amount}("");
@@ -386,11 +383,7 @@ contract PiggyBank {
     /**
      * @dev Checks if user can deposit (gas optimized)
      */
-    function getContractStats()
-        external
-        view
-        returns (uint256, uint256, uint256)
-    {
+    function getContractStats() external view returns (uint256, uint256, uint256) {
         return (totalDeposits, totalWithdrawals, address(this).balance);
     }
 

@@ -25,6 +25,7 @@ vi.mock('viem', () => ({
       owner: vi.fn(),
     },
   })),
+  getCode: vi.fn(),
   parseEther: vi.fn(),
   formatEther: vi.fn(),
 }))
@@ -119,7 +120,7 @@ describe('diagnostics utilities', () => {
     it('should save different transaction types', () => {
       saveTransactionForDiagnostics('0xwithdrawal', 'withdrawal', 'success')
       
-      const txData = JSON.parse(localStorage.getItem('lastTransactionData') || '{}')
+      const txData = JSON.parse(localStorage.getItem('lastTransactionData') || '{}') as unknown
       expect(txData.type).toBe('withdrawal')
       expect(txData.status).toBe('success')
     })
@@ -160,7 +161,7 @@ describe('diagnostics utilities', () => {
         getBlockNumber: vi.fn().mockRejectedValue(new Error('RPC error')),
         getBlock: vi.fn(),
         getCode: vi.fn(),
-      }) as any)
+      }) as unknown)
       
       const data = await gatherDiagnosticsData()
       
@@ -175,7 +176,7 @@ describe('diagnostics utilities', () => {
         read: {
           owner: vi.fn().mockRejectedValue(new Error('Contract read error')),
         },
-      }) as any)
+      }) as unknown)
       
       const data = await gatherDiagnosticsData()
       

@@ -476,3 +476,158 @@ class RateLimiter {
 }
 
 export const rateLimiter = new RateLimiter()
+
+// ============================================================================
+// Local Storage Encryption Utilities
+// ============================================================================
+
+/**
+ * Generate an encryption key from a password using PBKDF2
+ */
+async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+  const encoder = new TextEncoder()
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  )
+  
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  )
+}
+
+/**
+ * Generate a random salt for key derivation
+ */
+function generateSalt(): Uint8Array {
+  return crypto.getRandomValues(new Uint8Array(16))
+}
+
+/**
+ * Encrypt data for local storage
+ */
+export async function encryptForStorage(data: string, password: string): Promise<string> {
+  const salt = generateSalt()
+  const key = await deriveKey(password, salt)
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const encoder = new TextEncoder()
+  
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    encoder.encode(data)
+  )
+  
+  // Combine salt, iv, and encrypted data
+  const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength)
+  combined.set(salt, 0)
+  combined.set(iv, salt.length)
+  combined.set(new Uint8Array(encrypted), salt.length + iv.length)
+  
+  return btoa(String.fromCharCode(...combined))
+}
+
+/**
+ * Decrypt data from local storage
+ */
+export async function decryptFromStorage(encryptedData: string, password: string): Promise<string | null> {
+  try {
+    const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0))
+    
+    const salt = combined.slice(0, 16)
+    const iv = combined.slice(16, 28)
+    const encrypted = combined.slice(28)
+    
+    const key = await deriveKey(password, salt)
+    
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      encrypted
+    )
+    
+    const decoder = new TextDecoder()
+    return decoder.decode(decrypted)
+  } catch {
+    console.error('Failed to decrypt data from storage')
+    return null
+  }
+}
+
+/**
+ * Securely store data in local storage with encryption
+ */
+export async function secureStorageSet<T>(
+  key: string, 
+  value: T, 
+  password: string,
+  storage: Storage = localStorage
+): Promise<void> {
+  const data = JSON.stringify(value)
+  const encrypted = await encryptForStorage(data, password)
+  storage.setItem(key, encrypted)
+}
+
+/**
+ * Securely retrieve data from local storage with decryption
+ */
+export async function secureStorageGet<T>(
+  key: string, 
+  password: string,
+  storage: Storage = localStorage
+): Promise<T | null> {
+  const encrypted = storage.getItem(key)
+  if (!encrypted) return null
+  
+  const decrypted = await decryptFromStorage(encrypted, password)
+  if (!decrypted) return null
+  
+  try {
+    return JSON.parse(decrypted) as T
+  } catch {
+    console.error('Failed to parse decrypted data')
+    return null
+  }
+}
+
+/**
+ * Remove data from secure local storage
+ */
+export function secureStorageRemove(
+  key: string,
+  storage: Storage = localStorage
+): void {
+  storage.removeItem(key)
+}
+
+/**
+ * Check if encrypted data exists in local storage
+ */
+export function secureStorageHas(
+  key: string,
+  storage: Storage = localStorage
+): boolean {
+  return storage.getItem(key) !== null
+}
+
+/**
+ * Hash data for secure storage comparison (one-way)
+ */
+export async function hashForComparison(data: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(data))
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}

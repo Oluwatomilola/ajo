@@ -7,7 +7,7 @@ test.describe('Deposit Flow', () => {
     await page.evaluate(() => {
       window.ethereum = {
         isMetaMask: true,
-        request: async (request: { method: string, params?: any[] }) => {
+        request: async (request: { method: string, params?: unknown[] }) => {
           if (request.method === 'eth_requestAccounts') {
             return ['0x1234567890123456789012345678901234567890'];
           }

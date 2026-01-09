@@ -8,7 +8,7 @@ test.describe('Withdraw Flow', () => {
       // Mock wallet
       window.ethereum = {
         isMetaMask: true,
-        request: async (request: { method: string, params?: any[] }) => {
+        request: async (request: { method: string, params?: unknown[] }) => {
           if (request.method === 'eth_requestAccounts') {
             return ['0x1234567890123456789012345678901234567890'];
           }
@@ -49,7 +49,7 @@ test.describe('Withdraw Flow', () => {
 
     // Mock the transaction confirmation
     await page.evaluate(() => {
-      ;(window as any).confirm = () => true;
+      (window as unknown as { confirm: () => boolean }).confirm = () => true;
     });
 
     // Click withdraw button
@@ -62,8 +62,8 @@ test.describe('Withdraw Flow', () => {
   test('should show locked state when funds are locked', async ({ page }) => {
     // Update mock to show locked state
     await page.evaluate(() => {
-      ;(window as any).piggyBankContract = {
-        ...(window as any).piggyBankContract,
+      (window as unknown as { piggyBankContract: Record<string, unknown> }).piggyBankContract = {
+        ...(window as unknown as { piggyBankContract: Record<string, unknown> }).piggyBankContract,
         unlockTime: () => Math.floor(Date.now() / 1000) + 3600, // 1 hour in the future
       };
     });
