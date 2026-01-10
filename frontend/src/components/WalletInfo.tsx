@@ -126,14 +126,6 @@ export function WalletInfo() {
       <div className="wallet-actions">
         <button
           className="btn-secondary"
-          onClick={() => {
-            const explorerUrl = chain?.id ? NETWORK_EXPLORERS[chain.id as keyof typeof NETWORK_EXPLORERS] : null
-            if (explorerUrl) {
-              window.open(`${explorerUrl}/address/${address}`, '_blank')
-            } else {
-              alert('Explorer not available for this network')
-            }
-          }}
           onClick={handleViewOnExplorer}
         >
           View on Explorer
