@@ -136,6 +136,10 @@ export function usePiggyBank() {
     })
   }, [address, writeContract])
 
+  // Withdraw function (owner-only, withdraws entire contract balance)
+  const withdraw = () => {
+  // Withdraw function
+  const withdraw = (amount: string) => {
   // Memoize withdraw function to prevent recreation on every render
   const withdraw = useCallback(() => {
     if (!address) return
@@ -145,12 +149,12 @@ export function usePiggyBank() {
       abi: PIGGYBANK_ABI,
       functionName: 'withdraw',
     })
-  }, [address, writeContract])
+  }
 
   // Withdraw all alias — forwards to owner withdraw
-  const withdrawAll = useCallback(() => {
+  const withdrawAll = () => {
     withdraw()
-  }, [withdraw])
+  }
 
   // Get contract statistics using the aggregated function
   const { data: contractStats } = useReadContract({
@@ -164,10 +168,28 @@ export function usePiggyBank() {
   const totalDeposits = contractStats && contractStats.length >= 3 ? contractStats[0] : undefined
   const totalWithdrawals = contractStats && contractStats.length >= 3 ? contractStats[1] : undefined
 
+  // Compute owner flag for convenience in components and tests
+  const isOwner = !!(address && owner && String(address).toLowerCase() === String(owner).toLowerCase())
+
+
+  const { data: totalWithdrawals } = useReadContract({
+    address: PIGGYBANK_ADDRESS,
+    abi: PIGGYBANK_ABI,
+    functionName: 'totalWithdrawals',
+    query: { enabled: !!address && address === owner },
+  })
+  }, [address, writeContract])
+
+  // Note: Transaction history implementation would require integration with
+  // event indexers or subgraph queries for complete transaction tracking
+  const transactions: Transaction[] = []
   // Memoize admin check
   const isOwner = useMemo(() => {
     return !!address && !!owner && address.toLowerCase() === owner.toLowerCase()
   }, [address, owner])
+
+  // Memoize transactions array
+  const transactions: Transaction[] = useMemo(() => [], [])
 
   // Memoize return object to prevent unnecessary re-renders
   return useMemo(() => ({
@@ -185,20 +207,20 @@ export function usePiggyBank() {
     refetchBalance,
     refetchUnlockTime,
     isOwner,
+  }
     debouncedRefetch,
   }), [
-    balance,
-    unlockTime,
-    owner,
-    transactions,
-    deposit,
-    withdraw,
-    withdrawAll,
-    isPending,
-    isConfirming,
-    isSuccess,
-    hash,
-    refetchBalance,
+    balance, 
+    unlockTime, 
+    owner, 
+    transactions, 
+    deposit, 
+    withdraw, 
+    isPending, 
+    isConfirming, 
+    isSuccess, 
+    hash, 
+    refetchBalance, 
     refetchUnlockTime,
     isOwner,
     debouncedRefetch
