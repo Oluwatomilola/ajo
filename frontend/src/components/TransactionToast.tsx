@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useWatchPendingTransactions, useWaitForTransactionReceipt } from 'wagmi'
 
 interface Toast {
@@ -8,9 +8,31 @@ interface Toast {
   txHash?: string
 }
 
+/**
+ * TransactionToast component provides consistent feedback for all transaction states.
+ * Always shows clear messages for:
+ * - Pending: "Transaction submitted"
+ * - Success: "Transaction confirmed"
+ * - Error: "Transaction failed"
+ * This ensures users always receive feedback about their transaction status.
+ */
 export function TransactionToast() {
-  const [toasts, setToasts] = useState<Toast[]>([])
-  const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>()
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>();
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  const addToast = useCallback((toast: Toast) => {
+    setToasts((prev) => [...prev, toast])
+
+    // Auto-remove after 5 seconds for success/error, 10 seconds for pending
+    const timeout = toast.type === 'pending' ? 10000 : 5000
+    setTimeout(() => {
+      removeToast(toast.id)
+    }, timeout)
+  }, [removeToast])
 
   // Watch for pending transactions
   useWatchPendingTransactions({
@@ -44,7 +66,7 @@ export function TransactionToast() {
       // Add success toast
       addToast({
         id: `${pendingTxHash}-success`,
-        message: 'Transaction confirmed successfully!',
+        message: 'Transaction confirmed',
         type: 'success',
         txHash: pendingTxHash,
       })
@@ -52,7 +74,7 @@ export function TransactionToast() {
       // Reset pending hash
       setPendingTxHash(undefined)
     }
-  }, [isSuccess, pendingTxHash])
+  }, [isSuccess, pendingTxHash, addToast, removeToast])
 
   // Handle failed transaction
   useEffect(() => {
@@ -63,7 +85,7 @@ export function TransactionToast() {
       // Add error toast
       addToast({
         id: `${pendingTxHash}-error`,
-        message: 'Transaction failed. Please try again.',
+        message: 'Transaction failed',
         type: 'error',
         txHash: pendingTxHash,
       })
@@ -71,21 +93,7 @@ export function TransactionToast() {
       // Reset pending hash
       setPendingTxHash(undefined)
     }
-  }, [isError, pendingTxHash])
-
-  const addToast = (toast: Toast) => {
-    setToasts((prev) => [...prev, toast])
-
-    // Auto-remove after 5 seconds for success/error, 10 seconds for pending
-    const timeout = toast.type === 'pending' ? 10000 : 5000
-    setTimeout(() => {
-      removeToast(toast.id)
-    }, timeout)
-  }
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-  }
+  }, [isError, pendingTxHash, addToast, removeToast])
 
   if (toasts.length === 0) return null
 

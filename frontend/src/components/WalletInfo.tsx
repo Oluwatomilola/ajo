@@ -1,6 +1,31 @@
 import { useState } from 'react'
 import { useAccount, useBalance, useDisconnect } from 'wagmi'
 import { formatEther } from 'viem'
+// Using simple inline symbols instead of Heroicons to avoid an extra dependency in tests
+
+// Network explorer URLs mapping
+const NETWORK_EXPLORERS: Record<number, string> = {
+  84532: 'https://sepolia.basescan.org', // Base Sepolia
+  8453: 'https://basescan.org',          // Base Mainnet
+  1: 'https://etherscan.io',            // Ethereum Mainnet
+  11155111: 'https://sepolia.etherscan.io', // Ethereum Sepolia
+  137: 'https://polygonscan.com',        // Polygon Mainnet
+  80001: 'https://mumbai.polygonscan.com', // Polygon Mumbai
+}
+
+/**
+ * Get the explorer URL for a given chain ID
+ */
+function getExplorerUrl(chainId: number, address: string): string {
+  const explorerBase = NETWORK_EXPLORERS[chainId]
+  
+  if (!explorerBase) {
+    // Fallback to Base mainnet for unknown networks
+    return `https://basescan.org/address/${address}`
+  }
+  
+  return `${explorerBase}/address/${address}`
+}
 
 export function WalletInfo() {
   const { address, isConnected, chain } = useAccount()
@@ -34,6 +59,16 @@ export function WalletInfo() {
     }
   }
 
+  const handleViewOnExplorer = () => {
+    if (!address || !chain?.id) {
+      alert('Unable to open explorer: missing address or network')
+      return
+    }
+
+    const url = getExplorerUrl(chain.id, address)
+    window.open(url, '_blank')
+  }
+
   if (!isConnected || !address) {
     return null
   }
@@ -62,9 +97,9 @@ export function WalletInfo() {
             aria-label="Copy to clipboard"
           >
             {copied ? (
-              <span style={{ color: 'var(--success)', fontSize: '0.875rem' }}>✓</span>
+              <span className="h-5 w-5 text-green-500">✓</span>
             ) : (
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>📋</span>
+              <span className="h-5 w-5 text-gray-400">📋</span>
             )}
             <span className="tooltip">{copied ? 'Copied!' : 'Copy'}</span>
           </button>
@@ -91,7 +126,7 @@ export function WalletInfo() {
       <div className="wallet-actions">
         <button
           className="btn-secondary"
-          onClick={() => window.open(`https://sepolia.basescan.org/address/${address}`, '_blank')}
+          onClick={handleViewOnExplorer}
         >
           View on Explorer
         </button>

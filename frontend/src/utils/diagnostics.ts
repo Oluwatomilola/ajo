@@ -4,18 +4,34 @@
 
 import { createPublicClient, http, getAddress, isAddress, getContract } from 'viem'
 import { base, baseSepolia } from '@reown/appkit/networks'
-import { 
-  BlockchainConnectionStatus, 
-  ContractStatus, 
-  EnvironmentFlags, 
+import type {
+  BlockchainConnectionStatus,
+  ContractStatus,
+  EnvironmentFlags,
   TransactionStatus,
   DiagnosticsData,
-  DiagnosticsError,
   ContractFunction,
   ContractEvent
 } from '../types/diagnostics'
+
+// Interface for ABI function/event items
+interface ABIItem {
+  type: string
+  name?: string
+  inputs?: Array<{
+    type: string
+    internalType?: string
+    name: string
+    indexed?: boolean
+  }>
+  outputs?: Array<{
+    type: string
+    internalType?: string
+    name: string
+  }>
+  stateMutability?: string
+}
 import { PIGGYBANK_ABI, PIGGYBANK_ADDRESS, CHAIN_ID } from '../config/contracts'
-import { wagmiAdapter } from '../config/wagmi'
 
 /**
  * Get current network information
@@ -58,7 +74,7 @@ export async function checkBlockchainConnection(): Promise<BlockchainConnectionS
       chainName: network?.name || 'Unknown',
       rpcUrl: network?.rpcUrls.default.http[0] || 'Unknown',
       blockNumber: Number(blockNumber),
-      networkType: CHAIN_ID === base.id ? 'mainnet' : CHAIN_ID === baseSepolia.id ? 'testnet' : 'unknown',
+      networkType: network?.id === base.id ? 'mainnet' : network?.id === baseSepolia.id ? 'testnet' : 'unknown',
       lastBlockTime: Number(block.timestamp) * 1000, // Convert to milliseconds
     }
   } catch (error) {
@@ -101,7 +117,7 @@ export async function checkContractStatus(): Promise<ContractStatus> {
     }
     
     // Check if contract is deployed and get code
-    const code = await client.getCode(getAddress(PIGGYBANK_ADDRESS))
+    const code = await client.getCode({ address: getAddress(PIGGYBANK_ADDRESS) })
     const isDeployed = !!code && code !== '0x'
     
     // Create contract instance to test ABI
@@ -112,33 +128,29 @@ export async function checkContractStatus(): Promise<ContractStatus> {
     })
     
     // Test basic read function
-    let canRead = false
-    let owner: string | undefined
-    
     try {
-      owner = await contract.read.owner()
-      canRead = true
-    } catch (error) {
+      await contract.read.owner()
+    } catch {
       // Contract might not have owner function or other issues
     }
     
     // Analyze ABI functions and events
     const functions: ContractFunction[] = PIGGYBANK_ABI
-      .filter(item => item.type === 'function')
+      .filter((item): item is ABIItem => item.type === 'function')
       .map(fn => ({
-        name: (fn as any).name || 'unknown',
-        signature: `${(fn as any).name}(${(fn as any).inputs?.map((i: any) => i.type).join(',') || ''})`,
-        inputs: (fn as any).inputs?.map((i: any) => i.type) || [],
-        outputs: (fn as any).outputs?.map((o: any) => o.type) || [],
-        stateMutability: (fn as any).stateMutability || 'view'
+        name: fn.name || 'unknown',
+        signature: `${fn.name}(${fn.inputs?.map(i => i.type).join(',') || ''})`,
+        inputs: fn.inputs?.map(i => i.type) || [],
+        outputs: fn.outputs?.map(o => o.type) || [],
+        stateMutability: fn.stateMutability || 'view'
       }))
-    
+
     const events: ContractEvent[] = PIGGYBANK_ABI
-      .filter(item => item.type === 'event')
+      .filter((item): item is ABIItem => item.type === 'event')
       .map(event => ({
-        name: (event as any).name || 'unknown',
-        signature: `${(event as any).name}(${(event as any).inputs?.map((i: any) => i.type).join(',') || ''})`,
-        inputs: (event as any).inputs?.map((input: any) => ({
+        name: event.name || 'unknown',
+        signature: `${event.name}(${event.inputs?.map(i => i.type).join(',') || ''})`,
+        inputs: event.inputs?.map(input => ({
           indexed: input.indexed || false,
           internalType: input.internalType,
           name: input.name,

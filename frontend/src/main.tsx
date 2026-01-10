@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { WagmiProvider } from 'wagmi'
+import { WagmiConfig } from 'wagmi'
 import { QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.tsx'
@@ -20,10 +20,10 @@ if (!validation.isValid && validation.isStrict) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+    <WagmiConfig config={wagmiAdapter.wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
-    </WagmiProvider>
+    </WagmiConfig>
   </StrictMode>,
 )

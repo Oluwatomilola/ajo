@@ -1,30 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePiggyBank } from '../hooks/usePiggyBank';
 import { useTimelock } from '../hooks/useTimelock';
 import { formatEther } from 'viem';
 import { BUTTONS, MESSAGES, VALIDATION } from '../constants/uxCopy';
 
 export function WithdrawButton() {
-  const { balance, unlockTime, withdraw, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank()
+  const { balance, unlockTime, withdrawAll, isPending, isConfirming, isSuccess, refetchBalance } = usePiggyBank()
   const { isUnlocked } = useTimelock(unlockTime)
+  const [showError, setShowError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isSuccess) {
       refetchBalance()
+      setShowError(null)
     }
   }, [isSuccess, refetchBalance])
 
   const handleWithdraw = () => {
     if (!isUnlocked) {
-      alert(VALIDATION.LOCKED_FUNDS);
-      return;
+      setShowError(VALIDATION.LOCKED_FUNDS)
+      setTimeout(() => setShowError(null), 5000)
+      return
     }
-    if (!balance || balance === BigInt(0)) {
-      alert(MESSAGES.NO_FUNDS);
-      return;
+    if (!balance || balance === 0n) {
+      setShowError(MESSAGES.NO_FUNDS)
+      setTimeout(() => setShowError(null), 5000)
+      return
     }
-    withdraw();
-  };
+    withdrawAll()
+  }
 
   return (
     <div className="withdraw-section">
@@ -38,7 +42,6 @@ export function WithdrawButton() {
           </div>
         ) : (
           <div className="success-box">
-            {isSuccess && <span className="ml-2">✅ Withdrawn!</span>}
             <p>
               {MESSAGES.UNLOCKED}
             </p>
@@ -53,14 +56,24 @@ export function WithdrawButton() {
           disabled={!isUnlocked || !balance || isPending || isConfirming}
           title={balance ? `Withdraw ${formatEther(balance)} ETH` : 'No funds to withdraw'}
         >
-          {isPending || isConfirming ? 'Withdrawing...' : BUTTONS.WITHDRAW_ALL}
+          {isPending
+            ? 'Waiting for approval...'
+            : isConfirming
+            ? 'Withdrawing...'
+            : `Withdraw All (${balance ? formatEther(balance) : '0'} ETH)`}
         </button>
-        {balance && balance > 0 && (
+        {balance && balance > 0n && (
           <p className="withdraw-note">
             This will withdraw your entire balance of {formatEther(balance)} ETH
           </p>
         )}
       </div>
+
+      {showError && (
+        <div className="error-message" style={{ color: 'red', marginTop: '10px' }}>
+          ❌ {showError}
+        </div>
+      )}
 
       {isSuccess && (
         <div className="success-message">

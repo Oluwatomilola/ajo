@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { gatherDiagnosticsData, clearDiagnosticsData } from '../utils/diagnostics'
-import { DiagnosticsData } from '../types/diagnostics'
+import type { DiagnosticsData } from '../types/diagnostics'
 
 interface StatusBadgeProps {
-  status: boolean | 'pending' | 'success' | 'error'
+  status: boolean | 'pending' | 'success' | 'error' | 'unknown'
   successText?: string
   errorText?: string
   pendingText?: string
@@ -59,7 +59,7 @@ function DiagnosticSection({ title, children, isExpanded = true, onToggle }: Dia
   )
 }
 
-function formatDistanceToNow(date: Date, options?: any) {
+function formatDistanceToNow(date: Date) {
   const now = new Date()
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
   

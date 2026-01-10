@@ -4,18 +4,15 @@ import { WalletButton } from './WalletButton'
 import { TransactionToast } from './TransactionToast'
 import { useAccount } from 'wagmi'
 import { getWalletHistory, clearWalletHistory } from '../utils/walletStorage'
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 
 export function WalletConnectPage() {
   const { isConnected } = useAccount()
   const [history, setHistory] = useState(getWalletHistory())
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHistory(getWalletHistory())
-    }, 1000)
-
-    return () => clearInterval(interval)
+  // Memoized refresh function to prevent unnecessary re-renders
+  const refreshHistory = useCallback(() => {
+    setHistory(getWalletHistory())
   }, [])
 
   const handleClearHistory = () => {
@@ -23,6 +20,10 @@ export function WalletConnectPage() {
       clearWalletHistory()
       setHistory([])
     }
+  }
+
+  const handleRefreshHistory = () => {
+    refreshHistory()
   }
 
   return (
@@ -69,14 +70,23 @@ export function WalletConnectPage() {
         <div className="wallet-section">
           <div className="section-header">
             <h2>Connection History</h2>
-            {history.length > 0 && (
+            <div className="history-actions">
               <button
-                className="btn-clear"
-                onClick={handleClearHistory}
+                className="btn-refresh"
+                onClick={handleRefreshHistory}
+                title="Refresh history"
               >
-                Clear
+                🔄
               </button>
-            )}
+              {history.length > 0 && (
+                <button
+                  className="btn-clear"
+                  onClick={handleClearHistory}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
           {history.length === 0 ? (
@@ -91,7 +101,11 @@ export function WalletConnectPage() {
                   <div className="history-icon">🔗</div>
                   <div className="history-details">
                     <div className="history-address">
-                      {connection.address.slice(0, 6)}...{connection.address.slice(-4)}
+                      {(() => {
+                        // Sanitize address to prevent XSS
+                        const sanitizedAddress = connection.address.replace(/[<>'"&]/g, '');
+                        return `${sanitizedAddress.slice(0, 6)}...${sanitizedAddress.slice(-4)}`;
+                      })()}
                     </div>
                     <div className="history-meta">
                       Chain ID: {connection.chainId} • {new Date(connection.connectedAt).toLocaleDateString()}
