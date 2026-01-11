@@ -225,9 +225,11 @@ export function getRecentTransactions(): TransactionStatus[] {
     
     return [transaction]
   } catch (error) {
-    console.warn('Failed to get recent transactions:', error)
-    return []
-  }
+   if (process.env.NODE_ENV === 'development') {
+     console.warn('Failed to get recent transactions:', error)
+   }
+   return []
+ }
 }
 
 /**
