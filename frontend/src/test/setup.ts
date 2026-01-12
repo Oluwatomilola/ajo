@@ -1,6 +1,15 @@
 import '@testing-library/jest-dom'
 import { expect, afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
+import { JSDOM } from 'jsdom'
+
+const dom = new JSDOM('<!doctype html><html><body></body></html>', {
+  url: 'http://localhost'
+})
+
+global.window = dom.window as any
+global.document = dom.window.document
+global.navigator = dom.window.navigator
 
 // Cleanup after each test
 afterEach(() => {
