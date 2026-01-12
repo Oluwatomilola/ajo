@@ -10,6 +10,7 @@ export default defineConfig({
     port: NETWORK.DEFAULT_PORT,
     open: true, // Auto-open browser on start
     headers: {
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*; object-src 'none'; base-uri 'self'; form-action 'self';",
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
