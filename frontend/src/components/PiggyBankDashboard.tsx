@@ -5,6 +5,7 @@ import { WithdrawButton } from './WithdrawButton'
 import { SaveForLater } from './SaveForLater'
 import { SecurePrompt, useSecurePrompt } from './SecurePrompt'
 import { useMobile } from '../hooks/useMobile'
+import { secureStorageUtils } from '../utils/security'
 
 interface SavedState {
   id: string;
