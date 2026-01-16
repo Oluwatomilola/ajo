@@ -179,7 +179,7 @@ describe('validateEnvironment', () => {
 
     it('should accept exactly 42 character contract address', () => {
       const validAddress = '0x' + 'a'.repeat(40)
-      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = validAddress
       
       const result = validateEnvironment()
@@ -195,7 +195,7 @@ describe('validateEnvironment', () => {
       process.env.CI = 'true'
       process.env.GITHUB_ACTIONS = 'true'
       
-      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
       mockImportMeta.env.PROD = false
       mockImportMeta.env.DEV = false
@@ -209,7 +209,7 @@ describe('validateEnvironment', () => {
     })
 
     it('should enable strict validation in production mode', () => {
-      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
       mockImportMeta.env.PROD = true
       mockImportMeta.env.DEV = false
@@ -223,7 +223,7 @@ describe('validateEnvironment', () => {
     })
 
     it('should disable strict validation in development mode', () => {
-      mockImportMeta.env.VITE_REOWN_PROJECT_ID = '12345678901234567890123456789012'
+      mockImportMeta.env.VITE_REOWN_PROJECT_ID = ''
       mockImportMeta.env.VITE_PIGGYBANK_ADDRESS = ''
       mockImportMeta.env.PROD = false
       mockImportMeta.env.DEV = true
