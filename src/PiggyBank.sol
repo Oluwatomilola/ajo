@@ -12,6 +12,9 @@ contract PiggyBank {
     address public owner;
     uint256 public unlockTime;
     bool public paused;
+    address public emergencyGuardian;
+    bool public emergencyMode;
+    uint256 public emergencyUnlockTime;
 
     // Multi-user deposit tracking
     uint256 public constant MAX_DEPOSIT_AMOUNT = 1000 ether; // Maximum deposit per user
@@ -24,10 +27,6 @@ contract PiggyBank {
     mapping(address => uint256) public depositTimestamps;
     mapping(address => uint256) public userDepositCount;
 
-    // Deposit limits
-    uint256 public constant MAX_DEPOSIT_AMOUNT = type(uint256).max;
-    uint256 public constant MIN_DEPOSIT_AMOUNT = 0.001 ether;
-
     // Custom errors for gas efficiency
     error PiggyBank__DepositTooHigh();
     error PiggyBank__DepositTooLow();
@@ -38,6 +37,15 @@ contract PiggyBank {
     error PiggyBank__ZeroAmount();
     error PiggyBank__InsufficientBalance();
     error PiggyBank__NoDeposit();
+    error PiggyBank__ZeroValue();
+    error PiggyBank__Unauthorized();
+    error PiggyBank__Paused();
+    error PiggyBank__InvalidUnlockTime();
+    error PiggyBank__EmergencyModeActive();
+    error PiggyBank__Blacklisted();
+    error PiggyBank__ReentrancyAttack();
+    error PiggyBank__MaxUsersReached();
+    error PiggyBank__InvalidLockTime();
     // Statistics for monitoring
     uint256 public totalDeposits;
     uint256 public totalWithdrawals;
@@ -47,23 +55,14 @@ contract PiggyBank {
     event Withdrawn(address indexed withdrawer, uint256 amount);
     event Paused(address account);
     event Unpaused(address account);
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    // ============ CUSTOM ERRORS ============
-    error PiggyBank__ZeroValue();
-    error PiggyBank__DepositTooLow();
-    error PiggyBank__DepositTooHigh();
-    error PiggyBank__StillLocked();
-    error PiggyBank__NoDeposits();
-    error PiggyBank__Unauthorized();
-    error PiggyBank__Paused();
-    error PiggyBank__InvalidUnlockTime();
-    error PiggyBank__EmergencyModeActive();
-    error PiggyBank__Blacklisted();
-    error PiggyBank__ReentrancyAttack();
-    error PiggyBank__TransferFailed();
-    error PiggyBank__MaxUsersReached();
-    error PiggyBank__InvalidLockTime();
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+    event EmergencyGuardianChanged(address indexed oldGuardian, address indexed newGuardian);
+    event EmergencyModeActivated(address indexed activator, uint256 unlockTime);
+    event EmergencyWithdrawal(address indexed user, uint256 amount);
+    event DepositLimitUpdated(uint256 oldLimit, uint256 newLimit);
 
     // ============ MODIFIERS ============
     modifier whenNotPaused() {
@@ -165,25 +164,19 @@ contract PiggyBank {
      * @notice Owner withdraws entire contract balance after unlock
      */
     function withdraw() external whenNotPaused {
-        require(msg.sender == owner, "PiggyBank: Not owner");
-        require(block.timestamp >= unlockTime, "PiggyBank: Still locked");
+        if (msg.sender != owner) revert PiggyBank__NotOwner();
+        if (block.timestamp < unlockTime) revert PiggyBank__StillLocked();
 
         uint256 contractBalance = address(this).balance;
-        require(contractBalance > 0, "No balance");
+        if (contractBalance == 0) revert PiggyBank__ZeroAmount();
 
         // Effects
         totalWithdrawals += contractBalance;
 
         // Interactions
         emit Withdrawn(msg.sender, contractBalance);
-        (bool success,) = payable(msg.sender).call{value: contractBalance}("");
-        require(success, "Transfer failed");
-        // External call at the END to prevent reentrancy
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        (bool success, ) = payable(msg.sender).call{value: contractBalance}("");
         if (!success) revert PiggyBank__TransferFailed();
-
-        // Emit event after successful transfer (checks-effects-interactions pattern)
-        emit Withdrawn(msg.sender, amount, block.timestamp);
     }
 
     /**
@@ -203,14 +196,14 @@ contract PiggyBank {
         totalWithdrawals += userDeposit;
 
         // Interactions - Emit event first, then external call
-        emit Withdrawn(msg.sender, userDeposit, block.timestamp);
+        emit Withdrawn(msg.sender, userDeposit);
 
         // External call at the END to prevent reentrancy
         (bool success, ) = payable(msg.sender).call{value: userDeposit}("");
         if (!success) revert PiggyBank__TransferFailed();
 
         // Emit event after successful transfer (checks-effects-interactions pattern)
-        emit EmergencyWithdrawal(user, amount);
+        emit EmergencyWithdrawal(msg.sender, userDeposit);
     }
 
     // ============ ADMIN FUNCTIONS ============
@@ -380,12 +373,6 @@ contract PiggyBank {
     }
 
     // ============ UTILITY FUNCTIONS ============
-    /**
-     * @dev Checks if user can deposit (gas optimized)
-     */
-    function getContractStats() external view returns (uint256, uint256, uint256) {
-        return (totalDeposits, totalWithdrawals, address(this).balance);
-    }
 
     /**
      * @dev Checks if user can withdraw (gas optimized)

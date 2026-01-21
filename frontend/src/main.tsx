@@ -1,29 +1,19 @@
-import { StrictMode } from 'react'
+import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { WagmiConfig } from 'wagmi'
+import { WagmiProvider } from 'wagmi' // cspell:ignore wagmi
 import { QueryClientProvider } from '@tanstack/react-query'
-import './index.css'
-import App from './App.tsx'
-import { wagmiAdapter, queryClient } from './config/wagmi'
-import { validateEnvironment } from './utils/validateEnv'
+import { App } from './App'
+import { wagmiConfig, queryClient } from './config/wagmi'
 
-// Validate environment variables on startup
-const validation = validateEnvironment()
+const container = document.getElementById('root')!
+const root = createRoot(container)
 
-// Throw error in strict mode (CI/production) if validation fails
-if (!validation.isValid && validation.isStrict) {
-  throw new Error(
-    'Environment validation failed. Required environment variables are missing. ' +
-    'Check console for details.'
-  )
-}
-
-createRoot(document.getElementById('root')!).render(
+root.render(
   <StrictMode>
-    <WagmiConfig config={wagmiAdapter.wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={wagmiConfig}>
         <App />
-      </QueryClientProvider>
-    </WagmiConfig>
+      </WagmiProvider>
+    </QueryClientProvider>
   </StrictMode>,
 )

@@ -267,14 +267,16 @@
   }
 
   .error-boundary--page .error-boundary__actions {
-.error-details {
-  margin: 1.5rem 0;
-  text-align: left;
-  background-color: #f3f4f6;
-  border-radius: 6px;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-}
+  }
+
+  .error-details {
+    margin: 1.5rem 0;
+    text-align: left;
+    background-color: #f3f4f6;
+    border-radius: 6px;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+  }
 
 .error-details-title {
   font-weight: 600;
@@ -415,5 +417,6 @@
   .btn-secondary {
     width: 100%;
     justify-content: center;
+  }
   }
 }

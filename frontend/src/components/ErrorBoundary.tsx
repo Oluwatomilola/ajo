@@ -1,7 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { Button } from './ui/Button'
 import '../styles/errorBoundary.css'
-import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 interface Props {
   children: ReactNode

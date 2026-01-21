@@ -213,20 +213,15 @@ export function getPerformanceBenchmarks(): PerformanceBenchmark[] {
  */
 export function getPerformanceAlerts(severity?: PerformanceAlert['severity'], resolved?: boolean): PerformanceAlert[] {
   let alerts = [...performanceAlerts]
-  
+
   if (severity) {
     alerts = alerts.filter(a => a.severity === severity)
   }
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout
-  
+
   if (resolved !== undefined) {
     alerts = alerts.filter(a => a.resolved === resolved)
   }
-  
+
   return alerts
 }
 
@@ -255,25 +250,20 @@ export function getAverageMetric(name: string, category?: string, timeRange?: nu
 } {
   const metrics = getPerformanceMetrics(category, timeRange)
     .filter(m => m.name === name)
-export function throttle<T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let lastCall = 0
-  
+
   if (metrics.length === 0) {
     return { average: 0, median: 0, percentile95: 0, percentile99: 0, sampleCount: 0, confidence: 0 }
   }
-  
+
   const values = metrics.map(m => m.value).sort((a, b) => a - b)
   const average = values.reduce((sum, val) => sum + val, 0) / values.length
   const median = values[Math.floor(values.length / 2)]
   const percentile95 = values[Math.floor(values.length * 0.95)] || 0
   const percentile99 = values[Math.floor(values.length * 0.99)] || 0
-  
+
   // Simple confidence calculation based on sample size
   const confidence = Math.min(values.length / 30, 1) // 95% confidence with 30+ samples
-  
+
   return { average, median, percentile95, percentile99, sampleCount: values.length, confidence }
 }
 
@@ -328,6 +318,7 @@ export function getMemoryUsage() {
   if ('memory' in performance) {
     const perfWithMemory = performance as PerformanceMemory
     const memInfo = perfWithMemory.memory
+    const usagePercentage = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100
     return {
       usedJSHeapSize: memInfo.usedJSHeapSize,
       totalJSHeapSize: memInfo.totalJSHeapSize,

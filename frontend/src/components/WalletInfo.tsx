@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAccount, useBalance, useDisconnect } from 'wagmi'
+import { useAccount, useBalance, useChainId, useDisconnect } from 'wagmi'
 import { formatEther } from 'viem'
 // Using simple inline symbols instead of Heroicons to avoid an extra dependency in tests
 
@@ -30,6 +30,7 @@ function getExplorerUrl(chainId: number, address: string): string {
 export function WalletInfo() {
   const { address, isConnected, chain } = useAccount()
   const { disconnect } = useDisconnect()
+  const chainId = useChainId()
   const { data: balance } = useBalance({
     address: address,
   })
@@ -60,12 +61,12 @@ export function WalletInfo() {
   }
 
   const handleViewOnExplorer = () => {
-    if (!address || !chain?.id) {
+    if (!address || !chainId) {
       alert('Unable to open explorer: missing address or network')
       return
     }
 
-    const url = getExplorerUrl(chain.id, address)
+    const url = getExplorerUrl(chainId, address)
     window.open(url, '_blank')
   }
 

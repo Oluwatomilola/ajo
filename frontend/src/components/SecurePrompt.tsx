@@ -45,14 +45,6 @@ export function SecurePrompt({
           '&': '&amp;',
         };
         return entities[match];
-        const entities: Record<string, string> = {
-          '<': '<',
-          '>': '>',
-          '"': '"',
-          "'": ''',
-          '&': '&',
-        };
-        return entities[match];
       })
       .trim()
       .substring(0, maxLength);

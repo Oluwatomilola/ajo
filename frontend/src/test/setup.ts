@@ -1,4 +1,5 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom/vitest'
+/// <reference types="vitest/globals" />
 import { expect, afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { JSDOM } from 'jsdom'
@@ -33,3 +34,4 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Extend expect with custom matchers if needed
 export { expect }
+
